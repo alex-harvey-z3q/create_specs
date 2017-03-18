@@ -104,6 +104,7 @@ class CreateSpecs
           r['parameters']['content'].gsub!('\\') { '\\\\' }
           r['parameters']['content'].gsub!(/"/, '\"')
           r['parameters']['content'].gsub!(/\$;/, '\\$;')
+          r['parameters']['content'].gsub!(/\$EscapeControlCharactersOnReceive/, '\\$EscapeControlCharactersOnReceive')  # A weird special Ruby var I ran into.
         end
 
         @content +=
