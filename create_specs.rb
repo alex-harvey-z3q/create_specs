@@ -101,7 +101,9 @@ class CreateSpecs
         (r['parameters']['ensure'] == 'file' or r['parameters']['ensure'] == 'present')
 
         if r['parameters'].has_key?('content')
+          r['parameters']['content'].gsub!('\\') { '\\\\' }
           r['parameters']['content'].gsub!(/"/, '\"')
+          r['parameters']['content'].gsub!(/\$;/, '\\$;')
         end
 
         @content +=
