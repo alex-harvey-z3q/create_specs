@@ -1,6 +1,6 @@
 # create_specs.rb
 
-Release 1.0.0
+Release 1.1.0
 
 ## Overview
 
@@ -10,7 +10,9 @@ It is assumed that the user already knows how to set up Rspec-puppet for a Puppe
 
 ## Dependencies
 
-Be aware that the script depends on the `verify_contents` method that is normally found inside Puppetlabs-spec-helper.
+This tool uses the [awesome_print](https://github.com/awesome-print/awesome_print) Gem.
+
+Also, be aware that the generated spec depends on the `verify_contents` method that is normally found inside Puppetlabs-spec-helper.
 
 ## Usage
 
@@ -29,6 +31,13 @@ While there are a variety of ways of creating a compiled Puppet catalog, the eas
 require 'spec_helper'
 
 describe 'myclass' do
+  let(:params) do
+    {
+      'param1' => 'value1',
+      'param2' => 'value2',
+    }
+  end
+
   it {
     File.write(
       'mycatalog.json',

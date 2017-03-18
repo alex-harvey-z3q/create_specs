@@ -2,6 +2,7 @@
 
 require 'json'
 require 'fileutils'
+require 'awesome_print'
 
 class CreateSpecs
   def initialize
@@ -11,7 +12,11 @@ class CreateSpecs
 
     @catalog = JSON.parse(File.read(ARGV[0]))
 
-    set_class_name
+    @class_name = set_class_name
+    @params = set_params
+
+    @content = String.new
+
     clean_out_catalog
     generate_content
     write_content_to_file
@@ -26,13 +31,20 @@ class CreateSpecs
     begin
       File.read('manifests/init.pp').each_line do |l|
         if l.match(/^class/)
-          @classname = l.match(/class (.*) /).captures[0]
+          return l.match(/class (.*) /).captures[0]
         end
       end
     rescue
       puts 'Did not get a class name from manifests/init.pp, using the current working dir.'
-      @classname = Dir.pwd
+      return Dir.pwd
     end
+  end
+
+  def set_params
+    my_class = @catalog['data']['resources'].select do |r|
+      r['type'] == 'Class' and r['title'] == @class_name.capitalize
+    end
+    @params = my_class[0]['parameters']
   end
 
   def clean_out_catalog
@@ -45,15 +57,26 @@ class CreateSpecs
 
   def generate_content
     generate_head_section
-    generate_examples_for_each_resource
+    generate_params_section
+    generate_examples_section
     generate_tail_section
   end
 
   def generate_head_section
-    @content = "require 'spec_helper'\n\ndescribe '#{@classname}' do\n"
+    @content = "require 'spec_helper'\nrequire 'json'\n\ndescribe '#{@class_name}' do\n"
   end
 
-  def generate_examples_for_each_resource
+  def generate_params_section
+    @content += "  let(:params) do\n    " +
+    @params.awesome_inspect(
+      :index  => false,
+      :indent => -2,
+      :plain  => true,
+    ).gsub(/\n/m, "\n    ") +
+    "\n  end\n\n"
+  end
+
+  def generate_examples_section
     @catalog['data']['resources'].each do |r|
       @content +=
 "  it {
@@ -103,7 +126,7 @@ class CreateSpecs
 "  it {
     is_expected.to compile.with_all_deps
     File.write(
-      'catalogs/#{@classname}.json',
+      'catalogs/#{@class_name}.json',
       PSON.pretty_generate(catalogue)
     )
   }
