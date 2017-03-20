@@ -106,6 +106,7 @@ class CreateSpecs
         if r['parameters'].has_key?('content')
           r['parameters']['content'].gsub!('\\') { '\\\\' }
           r['parameters']['content'].gsub!(/"/, '\"')
+          r['parameters']['content'].gsub!(/\@/, '\@')
           r['parameters']['content'].gsub!(/\$;/, '\\$;')
           r['parameters']['content'].gsub!(/\$EscapeControlCharactersOnReceive/, '\\$EscapeControlCharactersOnReceive')  # A weird special Ruby var I ran into.
         end
