@@ -84,6 +84,9 @@ class CreateSpecs
 "
       r['parameters'].each do |k, v|
         unless r['type'] == 'File' and k == 'content'
+          if v.is_a?(String)
+            v.gsub!(/'/, "\\\\'")
+          end
           @content +=
 
 "      '#{k}' => '#{v}',
