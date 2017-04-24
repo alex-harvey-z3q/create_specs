@@ -78,9 +78,10 @@ class CreateSpecs
 
   def generate_examples_section
     @catalog['data']['resources'].each do |r|
+      title = r['title'].gsub(/'/, "\\\\'")
       @content +=
 "  it {
-    is_expected.to contain_#{r['type'].downcase}('#{r['title']}').with({
+    is_expected.to contain_#{r['type'].downcase}('#{title}').with({
 "
       r['parameters'].each do |k, v|
         unless r['type'] == 'File' and k == 'content'
