@@ -80,12 +80,12 @@ class CreateSpecs
 
   def generate_params_section
     @content += "  let(:params) do\n    " +
-    @params.awesome_inspect(
-      :index  => false,
-      :indent => -2,
-      :plain  => true,
-    ).gsub(/\n/m, "\n    ") +
-    "\n  end\n\n"
+      @params.awesome_inspect(
+        :index  => false,
+        :indent => -2,
+        :plain  => true,
+      ).gsub(/\n/m, "\n    ") +
+      "\n  end\n\n"
   end
 
   def generate_examples_section
