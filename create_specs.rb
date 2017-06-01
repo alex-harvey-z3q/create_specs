@@ -11,6 +11,7 @@ class CreateSpecs
     end
 
     @catalog = JSON.parse(File.read(ARGV[0]))
+    convert_to_v4_catalog
 
     @class_name = set_class_name
     @params = set_params
@@ -27,6 +28,13 @@ class CreateSpecs
     exit 1
   end
 
+  def convert_to_v4_catalog
+    if @catalog.has_key?('data')
+      @catalog['resources'] = @catalog['data']['resources']
+      @catalog.delete('data')
+    end
+  end
+
   def set_class_name
     begin
       File.read('manifests/init.pp').each_line do |l|
@@ -41,14 +49,18 @@ class CreateSpecs
   end
 
   def set_params
-    my_class = @catalog['data']['resources'].select do |r|
+    my_class = @catalog['resources'].select do |r|
       r['type'] == 'Class' and r['title'] == @class_name.capitalize
     end
-    @params = my_class[0]['parameters']
+    begin
+      @params = my_class[0]['parameters']
+    rescue
+      @params = []
+    end
   end
 
   def clean_out_catalog
-    @catalog['data']['resources'].delete_if do |h|
+    @catalog['resources'].delete_if do |h|
       h['type'] == 'Stage'  or h['type'] == 'Class' or
       h['type'] == 'Anchor' or h['type'] == 'Notify' or
       h['type'] =~ /::/
@@ -77,7 +89,7 @@ class CreateSpecs
   end
 
   def generate_examples_section
-    @catalog['data']['resources'].each do |r|
+    @catalog['resources'].each do |r|
       title = r['title'].gsub(/'/, "\\\\'")
       @content +=
 "  it {
@@ -102,7 +114,7 @@ class CreateSpecs
 
 "
       if r['type'] == 'File' and
-        (r['parameters']['ensure'] == 'file' or r['parameters']['ensure'] == 'present')
+        (r['parameters']['ensure'] == 'file' or r['parameters']['ensure'] == 'present' or ! r['parameters'].has_key?('ensure'))
 
         if r['parameters'].has_key?('content')
           r['parameters']['content'].gsub!('\\') { '\\\\' }
