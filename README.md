@@ -51,6 +51,3 @@ Then run the tests and you'll have a compiled catalog.
 
 For more detail, see my [other blog post](http://razorconsulting.com.au/dumping-the-catalog-in-rspec-puppet.html).
 
-## Notes
-
-At the moment, it is assumed that the catalog document was compiled using Puppet 3. It's fairly trivial to fix it so that it also works with Puppet 4. Feel free to request this feature!
