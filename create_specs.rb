@@ -36,15 +36,10 @@ class CreateSpecs
   end
 
   def set_class_name
-    begin
-      File.read('manifests/init.pp').each_line do |l|
-        if l.match(/^class/)
-          return l.match(/class (.*) /).captures[0]
-        end
+    @catalog['resources'].each_with_index do |r,i|
+      if r['type'] == 'Class' and r['title'] == 'main'
+        return @catalog['resources'][i+1]['title'].downcase
       end
-    rescue
-      puts 'Did not get a class name from manifests/init.pp, using the current working dir.'
-      return Dir.pwd
     end
   end
 
