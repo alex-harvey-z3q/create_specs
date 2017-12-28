@@ -43,14 +43,15 @@ class CreateSpecs
     end
   end
 
+  def capitalize(string)
+    string.split(/::/).map{|x| x.capitalize}.join('::')
+  end
+
   def set_params
-    my_class = @catalog['resources'].select do |r|
-      r['type'] == 'Class' and r['title'] == @class_name.capitalize
-    end
     begin
-      @params = my_class[0]['parameters']
+      return @catalog['resources'].select{|r| r['type']=='Class' and r['title']==capitalize(@class_name)}[0]['parameters']
     rescue
-      @params = []
+      return nil
     end
   end
 
@@ -74,13 +75,16 @@ class CreateSpecs
   end
 
   def generate_params_section
-    @content += "  let(:params) do\n    " +
-      @params.awesome_inspect(
-        :index  => false,
-        :indent => -2,
-        :plain  => true,
-      ).gsub(/\n/m, "\n    ") +
-      "\n  end\n\n"
+    unless @params.nil?
+      @content += "  let(:params) do\n    " +
+        @params.awesome_inspect(
+          :index  => false,
+          :indent => -2,
+          :plain  => true,
+        )
+        .
+        gsub(/\n/m, "\n    ") + "\n  end\n\n"
+    end
   end
 
   def generate_examples_section
