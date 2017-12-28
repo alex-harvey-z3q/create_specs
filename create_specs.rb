@@ -90,67 +90,69 @@ class CreateSpecs
   def generate_examples_section
     @catalog['resources'].each do |r|
       title = r['title'].gsub(/'/, "\\\\'")
-      @content +=
-"  it {
+      @content += <<-EOF
+  it 'is expected to contain #{r['type'].downcase} #{title}' do
     is_expected.to contain_#{r['type'].downcase}('#{title}').with({
-"
+      EOF
+
       r['parameters'].each do |k, v|
         unless r['type'] == 'File' and k == 'content'
           if v.is_a?(String)
             v.gsub!(/'/, "\\\\'")
+            @content += "      '#{k}' => '#{v}',\n"
+          elsif v.is_a?(Array)
+            @content += "      '#{k}' => #{v},\n"
           end
-          @content +=
-
-"      '#{k}' => '#{v}',
-"
-
         end
       end
 
-      @content +=
-"    })
-  }
+      @content += "    })\n  end\n\n"
 
-"
       if r['type'] == 'File' and
         (r['parameters']['ensure'] == 'file' or r['parameters']['ensure'] == 'present' or ! r['parameters'].has_key?('ensure'))
 
         if r['parameters'].has_key?('content')
-          r['parameters']['content'].gsub!('\\') { '\\\\' }
-          r['parameters']['content'].gsub!(/"/, '\"')
-          r['parameters']['content'].gsub!(/\@/, '\@')
-          r['parameters']['content'].gsub!(/\$;/, '\\$;')
-          r['parameters']['content'].gsub!(/\$EscapeControlCharactersOnReceive/, '\\$EscapeControlCharactersOnReceive')  # A weird special Ruby var I ran into.
+          begin
+            r['parameters']['content'].gsub!('\\') { '\\\\' }
+            r['parameters']['content'].gsub!(/"/, '\"')
+            r['parameters']['content'].gsub!(/\@/, '\@')
+            r['parameters']['content'].gsub!(/\$;/, '\\$;')
+            r['parameters']['content'].gsub!(/\$EscapeControlCharactersOnReceive/, '\\$EscapeControlCharactersOnReceive')  # A weird special Ruby var I ran into.
+          rescue
+          end
         end
 
-        @content +=
-"  [
+        unless r['parameters']['content'].nil?
+          @content += <<-EOF
+  it 'is expected to contain expected content for file #{r['title']}' do
+    [
 
 \"#{r['parameters']['content']}\",
 
-  ].map{|k| k.split(\"\\n\")}.each do |text|
+    ].map{|text| text.split(\"\\n\")}.each do |line|
 
-    it {
-      verify_contents(catalogue, '#{r['title']}', text)
-    }
+      verify_contents(catalogue, '#{r['title']}', line)
+    end
   end
 
-"
+          EOF
+        end
       end
     end
   end
 
   def generate_tail_section
-    @content += 
-"  it {
+    file_name = @class_name.gsub(/::/, '__')
+    @content += <<-EOF
+  it 'should write a compiled catalog' do
     is_expected.to compile.with_all_deps
     File.write(
-      'catalogs/#{@class_name}.json',
+      'catalogs/#{file_name}.json',
       PSON.pretty_generate(catalogue)
     )
-  }
+  end
 end
-"
+    EOF
   end
 
   def write_content_to_file
