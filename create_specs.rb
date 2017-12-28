@@ -59,7 +59,7 @@ class CreateSpecs
     @catalog['resources'].delete_if do |h|
       h['type'] == 'Stage'  or h['type'] == 'Class' or
       h['type'] == 'Anchor' or h['type'] == 'Notify' or
-      h['type'] =~ /::/
+      h['type'] == 'Node'   or h['type'] =~ /::/
     end
   end
 
