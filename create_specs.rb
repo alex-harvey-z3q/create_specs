@@ -100,6 +100,8 @@ class CreateSpecs
           if v.is_a?(String)
             v.gsub!(/'/, "\\\\'")
             @content += "      '#{k}' => '#{v}',\n"
+          elsif [Fixnum, TrueClass, FalseClass].include?(v.class)
+            @content += "      '#{k}' => '#{v}',\n"
           elsif v.is_a?(Array)
             @content += "      '#{k}' => #{v},\n"
           end
