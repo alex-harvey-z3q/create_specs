@@ -1,31 +1,67 @@
 #!/usr/bin/ruby
 
 require 'json'
+require 'yaml'
 require 'fileutils'
 require 'awesome_print'
+require 'optparse'
 
 class CreateSpecs
   def initialize
-    if ARGV.empty?
-      usage
-    end
+    @catalog_file, @options = parse_arguments
 
-    @catalog = JSON.parse(File.read(ARGV[0]))
+    @catalog = JSON.parse(File.read(@catalog_file))
     convert_to_v4_catalog
+
+    @content = String.new
 
     @class_name = set_class_name
     @params = set_params
-
-    @content = String.new
 
     clean_out_catalog
     generate_content
     write_content_to_file
   end
 
-  def usage
-    puts "Usage: #{$0} <catalog_file>"
-    exit 1
+  def parse_arguments
+    catalog_file = String.new
+    options = Hash.new { |h, k| h[k] = [] }
+    options[:excludes] = default_excludes
+    OptionParser.new do |opts|
+      opts.banner = "Usage: #{File.basename($0)} [options]"
+      opts.on('-c', '--catalog CATALOG', 'Path to the catalog JSON file') do |c|
+        catalog_file = c
+      end
+      opts.on('-x', '--exclude RESOURCE',
+ 'Resources to exclude. String or Regexp. Repeat this option to exclude multiple resources') do |r|
+        options[:excludes] << r
+      end
+      opts.on('-i', '--include RESOURCE',
+ 'Resources to include overriding default exclude list.') do |r|
+        options[:excludes].delete_if { |x| x == r }
+      end
+      opts.on('-h', '--help', 'Print this help') do
+        puts opts
+        exit 0
+      end
+    end.parse!
+
+    unless catalog_file
+      raise OptionParser::MissingArgument, 'You must specify a catalog file via -c'
+    end
+
+    unless File.exists?(catalog_file)
+      puts "#{catalog_file}: not found"
+      exit 1
+    end
+
+    return [catalog_file, options]
+  end
+
+  def default_excludes
+    config = [File.dirname($0), 'config.yml'].join('/')
+    return [] unless File.exists?(config)
+    return YAML.load_file(config)['default_excludes']
   end
 
   def convert_to_v4_catalog
@@ -57,9 +93,12 @@ class CreateSpecs
 
   def clean_out_catalog
     @catalog['resources'].delete_if do |h|
-      h['type'] == 'Stage'  or h['type'] == 'Class' or
-      h['type'] == 'Anchor' or h['type'] == 'Notify' or
-      h['type'] == 'Node'   or h['type'] =~ /::/
+      ret = false
+      @options[:excludes].each do |x|
+        ret = true if h['type'] == x
+        ret = true if x =~ /^\/.*\/$/ and eval "h['type'] =~ #{x}"
+      end
+      ret
     end
   end
 

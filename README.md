@@ -16,12 +16,34 @@ Also, be aware that the generated spec depends on the `verify_contents` method t
 
 ## Usage
 
-The script should be run from the root directory of the Puppet module and it takes the path to the catalog file as its only argument:
+Basic usage:
 
 ```
 $ cd /path/to/puppet/module
-$ create_specs.rb /path/to/catalog.json
+$ create_specs.rb -c /path/to/catalog.json
 ```
+
+By default, the script excludes all defined types as well as Class, Anchor, Notify and Node resources (see `config.yml`).
+
+If you want to override and include one or more of these, use the `-i` option:
+
+```
+$ create_specs.rb -c catalog.json -i Class -i Node
+```
+
+If you want to exclude additional resource types, use the `-x` option:
+
+```
+$ create_specs.rb -c catalog.json -x User -x Group
+```
+
+To include defined types:
+
+```
+$ create_specs.rb -c catalog.json -i /::/
+```
+
+Due to a quirk of the implementation (again, see `config.yml`) it is not possible to include a specific defined type only. Using `-i My::Type` would not override the default behaviour to exclude everything matching `/::/`.
 
 ## Creating the catalog document
 

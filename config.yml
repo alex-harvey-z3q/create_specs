@@ -1,0 +1,8 @@
+---
+default_excludes:
+  - Stage
+  - Class
+  - Anchor
+  - Notify
+  - Node
+  - /::/
