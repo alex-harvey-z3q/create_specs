@@ -6,71 +6,76 @@ require 'fileutils'
 require 'awesome_print'
 require 'optparse'
 
-class CreateSpecs
-  def initialize
-    @catalog_file, @options = parse_arguments
+def parse_arguments
+  catalog_file = String.new
+  options = Hash.new { |h, k| h[k] = [] }
+  options[:excludes] = default_excludes
+  OptionParser.new do |opts|
+    opts.banner = "Usage: #{File.basename($0)} [options]"
+    opts.on('-c', '--catalog CATALOG', 'Path to the catalog JSON file') do |c|
+      catalog_file = c
+    end
+    opts.on('-x', '--exclude RESOURCE', 'Resources to exclude. String or Regexp. Repeat this option to exclude multiple resources') do |r|
+      options[:excludes] << r
+    end
+    opts.on('-i', '--include RESOURCE', 'Resources to include overriding default exclude list.') do |r|
+      options[:excludes].delete_if { |x| x == r }
+    end
+    opts.on('-h', '--help', 'Print this help') do
+      puts opts
+      exit 0
+    end
+  end.parse!
+
+  unless catalog_file
+    raise OptionParser::MissingArgument, 'You must specify a catalog file via -c'
+  end
+
+  unless File.exists?(catalog_file)
+    puts "#{catalog_file}: not found"
+    exit 1
+  end
+
+  return [catalog_file, options]
+end
+
+def default_excludes
+  config = [File.dirname($0), 'config.yml'].join('/')
+  return [] unless File.exists?(config)
+  return YAML.load_file(config)['default_excludes']
+end
+
+# Class for rewriting a catalog as a spec file.
+#
+# @author Alex Harvey
+#
+class SpecWriter
+  def initialize(catalog_file, options)
+    @catalog_file = catalog_file
+    @options = options
 
     @catalog = JSON.parse(File.read(@catalog_file))
-    convert_to_v4_catalog
+    convert_to_v4
 
     @content = String.new
-
     @class_name = set_class_name
     @params = set_params
+  end
 
-    clean_out_catalog
+  def write
+    clean_catalog
     generate_content
-    write_content_to_file
+    write_to_file
   end
 
-  def parse_arguments
-    catalog_file = String.new
-    options = Hash.new { |h, k| h[k] = [] }
-    options[:excludes] = default_excludes
-    OptionParser.new do |opts|
-      opts.banner = "Usage: #{File.basename($0)} [options]"
-      opts.on('-c', '--catalog CATALOG', 'Path to the catalog JSON file') do |c|
-        catalog_file = c
-      end
-      opts.on('-x', '--exclude RESOURCE',
- 'Resources to exclude. String or Regexp. Repeat this option to exclude multiple resources') do |r|
-        options[:excludes] << r
-      end
-      opts.on('-i', '--include RESOURCE',
- 'Resources to include overriding default exclude list.') do |r|
-        options[:excludes].delete_if { |x| x == r }
-      end
-      opts.on('-h', '--help', 'Print this help') do
-        puts opts
-        exit 0
-      end
-    end.parse!
+  private
 
-    unless catalog_file
-      raise OptionParser::MissingArgument, 'You must specify a catalog file via -c'
-    end
-
-    unless File.exists?(catalog_file)
-      puts "#{catalog_file}: not found"
-      exit 1
-    end
-
-    return [catalog_file, options]
-  end
-
-  def default_excludes
-    config = [File.dirname($0), 'config.yml'].join('/')
-    return [] unless File.exists?(config)
-    return YAML.load_file(config)['default_excludes']
-  end
-
-  def convert_to_v4_catalog
-    if @catalog.has_key?('data')
-      @catalog['resources'] = @catalog['data']['resources']
-      @catalog.delete('data')
-    end
-  end
-
+  # Set the class name based on the catalog content.
+  #
+  # The assumption here is that the class name was used to compile the input
+  # catalog is found immediately after Class[main] in the resources array. This
+  # is true of all catalogs I have seen so far.
+  #
   def set_class_name
     @catalog['resources'].each_with_index do |r,i|
       if r['type'] == 'Class' and r['title'] == 'main'
@@ -91,7 +96,24 @@ class CreateSpecs
     end
   end
 
-  def clean_out_catalog
+  # Convert a v3 catalog to v4 format. We are of course not really
+  # "converting" in that Puppet (I assume) could not actually use it. For our
+  # purposes, however, we care only about the contents of the resources array.
+  #
+  # If we find a key at @catalog['data'], then we move
+  # @catalog['data']['resources'] to @catalog['resources'].
+  #
+  def convert_to_v4
+    if @catalog.has_key?('data')
+      @catalog['resources'] = @catalog['data']['resources']
+      @catalog.delete('data')
+    end
+  end
+
+  # Any default or command-line specified exclusions are removed from the
+  # catalog here.
+  #
+  def clean_catalog
     @catalog['resources'].delete_if do |h|
       ret = false
       @options[:excludes].each do |x|
@@ -102,6 +124,8 @@ class CreateSpecs
     end
   end
 
+  # Generate the actual file content, using the @content instance variable.
+  #
   def generate_content
     generate_head_section
     generate_params_section
@@ -196,10 +220,11 @@ end
     EOF
   end
 
-  def write_content_to_file
+  def write_to_file
     FileUtils.mkdir_p 'spec/classes'
     File.open('spec/classes/init_spec.rb', 'w') {|f| f.write(@content)}
   end
 end
 
-CreateSpecs.new
+catalog_file, options = parse_arguments
+SpecWriter.new(catalog_file, options).write
