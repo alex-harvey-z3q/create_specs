@@ -221,6 +221,7 @@ end
   end
 
   def write_to_file
+    puts('Writing out as spec/classes/init_spec.rb')
     FileUtils.mkdir_p 'spec/classes'
     File.open('spec/classes/init_spec.rb', 'w') {|f| f.write(@content)}
   end
