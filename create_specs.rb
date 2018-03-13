@@ -44,13 +44,14 @@ def parse_arguments
     end
   end.parse!
 
-  unless catalog_file
-    raise OptionParser::MissingArgument,
-      'You must specify a catalog file via -c'
+  if catalog_file.empty?
+    puts 'You must specify a catalog file via -c'
+    exit 1
   end
 
-  unless File.exists?(catalog_file)
-    raise "#{catalog_file}: not found"
+  if ! File.exists?(catalog_file)
+    puts "#{catalog_file}: not found"
+    exit 1
   end
 
   return [catalog_file, output_file, options]
