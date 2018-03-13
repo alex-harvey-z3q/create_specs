@@ -1,6 +1,6 @@
 # create_specs.rb
 
-Release 2.1.0
+Release 2.2.0
 
 ## Overview
 
