@@ -16,12 +16,26 @@ Also, be aware that the generated spec depends on the `verify_contents` method t
 
 ## Usage
 
+Help message:
+
+```
+$ create_specs.rb -h
+Usage: create_specs.rb [options]
+    -c, --catalog CATALOG            Path to the catalog JSON file
+    -o, --output OUTPUTFILE          Path to the output Rspec file
+    -x, --exclude RESOURCE           Resources to exclude. String or Regexp. Repeat this option to exclude multiple resources
+    -i, --include RESOURCE           Resources to include overriding default exclude list.
+    -h, --help                       Print this help
+```
+
 Basic usage:
 
 ```
 $ cd /path/to/puppet/module
 $ create_specs.rb -c /path/to/catalog.json
 ```
+
+This will cause the resources in `catalog.json` to be rewritten as Rspec-puppet examples in `spec/classes/init_spec.rb`, which is the default output file.
 
 By default, the script excludes all defined types as well as Class, Anchor, Notify and Node resources (see `config.yml`).
 
@@ -44,6 +58,12 @@ $ create_specs.rb -c catalog.json -i /::/
 ```
 
 Due to a quirk of the implementation (again, see `config.yml`) it is not possible to include a specific defined type only. Using `-i My::Type` would not override the default behaviour to exclude everything matching `/::/`.
+
+To specify a different output file:
+
+```
+$ create_specs.rb -c /path/to/catalog.json -o path/to/output_spec.rb
+```
 
 ## Creating the catalog document
 

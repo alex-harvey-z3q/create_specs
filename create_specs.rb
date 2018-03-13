@@ -6,6 +6,8 @@ require 'fileutils'
 require 'awesome_print'
 require 'optparse'
 
+$default_output = 'spec/classes/init_spec.rb'
+
 def default_excludes
   config = [File.dirname($0), 'config.yml'].join('/')
   return [] unless File.exists?(config)
@@ -17,16 +19,19 @@ def parse_arguments
   options[:excludes] = default_excludes
 
   catalog_file = String.new
+  output_file = $default_output
 
   OptionParser.new do |opts|
     opts.banner = "Usage: #{File.basename($0)} [options]"
     opts.on('-c', '--catalog CATALOG', 'Path to the catalog JSON file') do |c|
       catalog_file = c
     end
+    opts.on('-o', '--output OUTPUTFILE', 'Path to the output Rspec file') do |o|
+      output_file = o
+    end
     opts.on('-x', '--exclude RESOURCE', [
       'Resources to exclude. String or Regexp. ',
-      'Repeat this option to exclude multiple resources',
-    ].join) do |r|
+      'Repeat this option to exclude multiple resources'].join) do |r|
       options[:excludes] << r
     end
     opts.on('-i', '--include RESOURCE',
@@ -48,14 +53,15 @@ def parse_arguments
     raise "#{catalog_file}: not found"
   end
 
-  return [catalog_file, options]
+  return [catalog_file, output_file, options]
 end
 
 # Class for rewriting a catalog as a spec file.
 #
 class SpecWriter
-  def initialize(catalog_file, options)
+  def initialize(catalog_file, output_file, options)
     @catalog_file = catalog_file
+    @output_file = output_file
     @options = options
 
     @catalog = JSON.parse(File.read(@catalog_file))
@@ -229,11 +235,12 @@ class SpecWriter
   end
 
   def write_to_file
-    puts('Writing out as spec/classes/init_spec.rb')
+    puts("Writing out as #{@output_file}")
     FileUtils.mkdir_p 'spec/classes'
-    File.open('spec/classes/init_spec.rb', 'w') {|f| f.write(@content)}
+    File.open(@output_file, 'w') {|f| f.write(@content)}
   end
 end
 
-catalog_file, options = parse_arguments
-SpecWriter.new(catalog_file, options).write
+# Main.
+catalog_file, output_file, options = parse_arguments
+SpecWriter.new(catalog_file, output_file, options).write
