@@ -6,19 +6,31 @@ require 'fileutils'
 require 'awesome_print'
 require 'optparse'
 
+def default_excludes
+  config = [File.dirname($0), 'config.yml'].join('/')
+  return [] unless File.exists?(config)
+  return YAML.load_file(config)['default_excludes']
+end
+
 def parse_arguments
-  catalog_file = String.new
   options = Hash.new { |h, k| h[k] = [] }
   options[:excludes] = default_excludes
+
+  catalog_file = String.new
+
   OptionParser.new do |opts|
     opts.banner = "Usage: #{File.basename($0)} [options]"
     opts.on('-c', '--catalog CATALOG', 'Path to the catalog JSON file') do |c|
       catalog_file = c
     end
-    opts.on('-x', '--exclude RESOURCE', 'Resources to exclude. String or Regexp. Repeat this option to exclude multiple resources') do |r|
+    opts.on('-x', '--exclude RESOURCE', [
+      'Resources to exclude. String or Regexp. ',
+      'Repeat this option to exclude multiple resources',
+    ].join) do |r|
       options[:excludes] << r
     end
-    opts.on('-i', '--include RESOURCE', 'Resources to include overriding default exclude list.') do |r|
+    opts.on('-i', '--include RESOURCE',
+      'Resources to include overriding default exclude list.') do |r|
       options[:excludes].delete_if { |x| x == r }
     end
     opts.on('-h', '--help', 'Print this help') do
@@ -28,26 +40,18 @@ def parse_arguments
   end.parse!
 
   unless catalog_file
-    raise OptionParser::MissingArgument, 'You must specify a catalog file via -c'
+    raise OptionParser::MissingArgument,
+      'You must specify a catalog file via -c'
   end
 
   unless File.exists?(catalog_file)
-    puts "#{catalog_file}: not found"
-    exit 1
+    raise "#{catalog_file}: not found"
   end
 
   return [catalog_file, options]
 end
 
-def default_excludes
-  config = [File.dirname($0), 'config.yml'].join('/')
-  return [] unless File.exists?(config)
-  return YAML.load_file(config)['default_excludes']
-end
-
 # Class for rewriting a catalog as a spec file.
-#
-# @author Alex Harvey
 #
 class SpecWriter
   def initialize(catalog_file, options)
@@ -58,8 +62,8 @@ class SpecWriter
     convert_to_v4
 
     @content = String.new
-    @class_name = set_class_name
-    @params = set_params
+    @class_name = class_name
+    @params = params
   end
 
   def write
@@ -76,7 +80,7 @@ class SpecWriter
   # catalog is found immediately after Class[main] in the resources array. This
   # is true of all catalogs I have seen so far.
   #
-  def set_class_name
+  def class_name
     @catalog['resources'].each_with_index do |r,i|
       if r['type'] == 'Class' and r['title'] == 'main'
         return @catalog['resources'][i+1]['title'].downcase
@@ -88,12 +92,15 @@ class SpecWriter
     string.split(/::/).map{|x| x.capitalize}.join('::')
   end
 
-  def set_params
+  def params
     begin
-      return @catalog['resources'].select{|r| r['type']=='Class' and r['title']==capitalize(@class_name)}[0]['parameters']
+      resources = @catalog['resources'].select do |r|
+        r['type'] == 'Class' and r['title'] == capitalize(@class_name)
+      end
+      return resources[0]['parameters']
     rescue
-      return nil
     end
+    return nil
   end
 
   # Convert a v3 catalog to v4 format. We are of course not really
@@ -134,7 +141,10 @@ class SpecWriter
   end
 
   def generate_head_section
-    @content = "require 'spec_helper'\nrequire 'json'\n\ndescribe '#{@class_name}' do\n"
+    @content =
+      "require 'spec_helper'\n" +
+      "require 'json'\n\n"      +
+      "describe '#{@class_name}' do\n"
   end
 
   def generate_params_section
@@ -153,10 +163,9 @@ class SpecWriter
   def generate_examples_section
     @catalog['resources'].each do |r|
       title = r['title'].gsub(/'/, "\\\\'")
-      @content += <<-EOF
-  it 'is expected to contain #{r['type'].downcase} #{title}' do
-    is_expected.to contain_#{r['type'].downcase}('#{title}').with({
-      EOF
+      @content +=
+        "  it 'is expected to contain #{r['type'].downcase} #{title}' do\n" +
+        "    is_expected.to contain_#{r['type'].downcase}('#{title}').with({\n"
 
       r['parameters'].each do |k, v|
         unless r['type'] == 'File' and k == 'content'
@@ -174,7 +183,9 @@ class SpecWriter
       @content += "    })\n  end\n\n"
 
       if r['type'] == 'File' and
-        (r['parameters']['ensure'] == 'file' or r['parameters']['ensure'] == 'present' or ! r['parameters'].has_key?('ensure'))
+        (r['parameters']['ensure'] == 'file' or
+         r['parameters']['ensure'] == 'present' or
+         ! r['parameters'].has_key?('ensure'))
 
         if r['parameters'].has_key?('content')
           begin
@@ -182,25 +193,23 @@ class SpecWriter
             r['parameters']['content'].gsub!(/"/, '\"')
             r['parameters']['content'].gsub!(/\@/, '\@')
             r['parameters']['content'].gsub!(/\$;/, '\\$;')
-            r['parameters']['content'].gsub!(/\$EscapeControlCharactersOnReceive/, '\\$EscapeControlCharactersOnReceive')  # A weird special Ruby var I ran into.
+            r['parameters']['content'].gsub!(
+              /\$EscapeControlCharactersOnReceive/,
+              '\\$EscapeControlCharactersOnReceive')  # A weird special Ruby
           rescue
           end
         end
 
         unless r['parameters']['content'].nil?
-          @content += <<-EOF
-  it 'is expected to contain expected content for file #{r['title']}' do
-    [
-
-\"#{r['parameters']['content']}\",
-
-    ].map{|text| text.split(\"\\n\")}.each do |line|
-
-      verify_contents(catalogue, '#{r['title']}', line)
-    end
-  end
-
-          EOF
+          @content +=
+            "  it 'is expected to contain expected content for file "   +
+                          "#{r['title']}' do\n"                         +
+            "    [\n\n"                                                 +
+            "\"#{r['parameters']['content']}\",\n\n"                    +
+            "    ].map{|text| text.split(\"\\n\")}.each do |line|\n\n"  +
+            "      verify_contents(catalogue, '#{r['title']}', line)\n" +
+            "    end\n"                                                 +
+            "  end\n\n"
         end
       end
     end
@@ -208,16 +217,15 @@ class SpecWriter
 
   def generate_tail_section
     file_name = @class_name.gsub(/::/, '__')
-    @content += <<-EOF
-  it 'should write a compiled catalog' do
-    is_expected.to compile.with_all_deps
-    File.write(
-      'catalogs/#{file_name}.json',
-      PSON.pretty_generate(catalogue)
-    )
-  end
-end
-    EOF
+    @content +=
+      "  it 'should write a compiled catalog' do\n" +
+      "    is_expected.to compile.with_all_deps\n"  +
+      "    File.write(\n"                           +
+      "      'catalogs/#{file_name}.json',\n"       +
+      "      PSON.pretty_generate(catalogue)\n"     +
+      "    )\n"                                     +
+      "  end\n"                                     +
+      "end\n"
   end
 
   def write_to_file
