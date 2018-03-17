@@ -8,6 +8,9 @@ require 'optparse'
 
 $default_output = 'spec/classes/init_spec.rb'
 
+# FIXME. It would be cleaner if this was turned into a default options, with an
+# option to specify a custom options file on the command line.
+#
 def default_excludes
   config = [File.dirname($0), 'config.yml'].join('/')
   return [] unless File.exists?(config)
@@ -17,6 +20,7 @@ end
 def parse_arguments
   options = Hash.new { |h, k| h[k] = [] }
   options[:excludes] = default_excludes
+  options[:only_include] = []
 
   catalog_file = String.new
   output_file = $default_output
@@ -35,8 +39,12 @@ def parse_arguments
       options[:excludes] << r
     end
     opts.on('-i', '--include RESOURCE',
-      'Resources to include overriding default exclude list.') do |r|
+      'Resources to include despite the exclude list.') do |r|
       options[:excludes].delete_if { |x| x == r }
+    end
+    opts.on('-I', '--only-include RESOURCE',
+      'Only include these resources and exclude everything else') do |r|
+      options[:only_include] << r
     end
     opts.on('-h', '--help', 'Print this help') do
       puts opts
@@ -125,16 +133,30 @@ class SpecWriter
   end
 
   # Any default or command-line specified exclusions are removed from the
-  # catalog here.
+  # catalog here. Or, if only_include is specified, clean out everything other
+  # than what is specified there.
   #
   def clean_catalog
-    @catalog['resources'].delete_if do |h|
-      ret = false
-      @options[:excludes].each do |x|
-        ret = true if h['type'] == x
-        ret = true if x =~ /^\/.*\/$/ and eval "h['type'] =~ #{x}"
+    if ! @options[:only_include].empty?
+      @catalog['resources'].delete_if do |resource|
+        delete_me = true
+        @options[:only_include].each do |i|
+          type, title = i.tr('[]',' ').split(' ')
+          resource['type'] == type and resource['title'] == title and delete_me = false
+        end
+        delete_me
       end
-      ret
+    else
+      delete_me = true
+      @catalog['resources'].delete_if do |resource|
+        delete_me = false
+        @options[:excludes].each do |x|
+          delete_me = true if resource['type'] == x
+          delete_me = true if
+            x =~ /^\/.*\/$/ and eval "resource['type'] =~ #{x}"
+        end
+        delete_me
+      end
     end
   end
 
@@ -224,15 +246,17 @@ class SpecWriter
 
   def generate_tail_section
     file_name = @class_name.gsub(/::/, '__')
-    @content +=
-      "  it 'should write a compiled catalog' do\n" +
-      "    is_expected.to compile.with_all_deps\n"  +
-      "    File.write(\n"                           +
-      "      'catalogs/#{file_name}.json',\n"       +
-      "      PSON.pretty_generate(catalogue)\n"     +
-      "    )\n"                                     +
-      "  end\n"                                     +
-      "end\n"
+    unless ! @options[:only_include].empty?
+      @content +=
+        "  it 'should write a compiled catalog' do\n" +
+        "    is_expected.to compile.with_all_deps\n"  +
+        "    File.write(\n"                           +
+        "      'catalogs/#{file_name}.json',\n"       +
+        "      PSON.pretty_generate(catalogue)\n"     +
+        "    )\n"                                     +
+        "  end\n"
+    end
+    @content += "end\n"
   end
 
   def write_to_file

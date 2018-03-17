@@ -5,6 +5,7 @@ describe SpecWriter do
   before(:all) do
     @options = {
       :excludes => ['Stage', 'Class', 'Anchor', 'Notify', 'Node', '/::/'],
+      :only_include => [],
     }
   end
 
@@ -71,6 +72,30 @@ describe SpecWriter do
 
     after(:all) do
       FileUtils.rm(@new_output_file)
+    end
+  end
+
+  context 'include-only option' do
+    before(:all) do
+      @output_file = 'ntp_spec.rb'
+      @options = {
+        :excludes => ['Stage', 'Class', 'Anchor', 'Notify', 'Node', '/::/'],
+        :only_include => ['Service[ntp]'],
+      }
+      @spec_writer = SpecWriter.new(
+        'spec/fixtures/ntp.json', @output_file, @options
+      )
+    end
+
+    it 'should generate output file with expected md5sum' do
+      allow($stdout).to receive(:puts)
+      @spec_writer.write
+      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      expect(md5).to eq "21588b8c0dc9fe063c14469013f7bb1d"
+    end
+
+    after(:all) do
+      FileUtils.rm(@output_file)
     end
   end
 end

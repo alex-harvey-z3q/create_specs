@@ -20,12 +20,12 @@ Help message:
 
 ```
 $ create_specs.rb -h
-Usage: create_specs.rb [options]
-    -c, --catalog CATALOG            Path to the catalog JSON file
-    -o, --output OUTPUTFILE          Path to the output Rspec file
-    -x, --exclude RESOURCE           Resources to exclude. String or Regexp. Repeat this option to exclude multiple resources
-    -i, --include RESOURCE           Resources to include overriding default exclude list.
-    -h, --help                       Print this help
+  -c, --catalog CATALOG        Path to the catalog JSON file
+  -o, --output OUTPUTFILE      Path to the output Rspec file
+  -x, --exclude RESOURCE       Resources to exclude. String or Regexp. Repeat this option to exclude multiple resources
+  -i, --include RESOURCE       Resources to include despite the exclude list.
+  -I, --only-include RESOURCE  Only include these resources and exclude everything else
+  -h, --help                   Print this help
 ```
 
 Basic usage:
@@ -55,6 +55,12 @@ To include defined types:
 
 ```
 $ create_specs.rb -c catalog.json -i /::/
+```
+
+It is also possible to exclude everything other than a list of resources you care about. Use the `-I` option for this:
+
+```
+$ create_specs.rb -c catalog.json -I 'Service[ntp]' -I 'File[ntp]'
 ```
 
 Due to a quirk of the implementation (again, see `config.yml`) it is not possible to include a specific defined type only. Using `-i My::Type` would not override the default behaviour to exclude everything matching `/::/`.
