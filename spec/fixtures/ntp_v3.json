@@ -1,0 +1,119 @@
+{
+  "document_type": "Catalog",
+  "data": {
+    "tags": ["settings","ntp","class"],
+    "name": "alexs-macbook-pro.local",
+    "version": 1521218929,
+    "environment": "rp_env",
+    "resources": [
+      {
+        "type": "Stage",
+        "title": "main",
+        "tags": ["stage"],
+        "exported": false,
+        "parameters": {
+          "name": "main"
+        }
+      },
+      {
+        "type": "Class",
+        "title": "Settings",
+        "tags": ["class","settings"],
+        "exported": false
+      },
+      {
+        "type": "Class",
+        "title": "main",
+        "tags": ["class"],
+        "exported": false,
+        "parameters": {
+          "name": "main"
+        }
+      },
+      {
+        "type": "Class",
+        "title": "Ntp",
+        "tags": ["class","ntp"],
+        "exported": false,
+        "parameters": {
+          "servers": [
+            "0.au.pool.ntp.org",
+            "1.au.pool.ntp.org",
+            "2.au.pool.ntp.org",
+            "3.au.pool.ntp.org"
+          ]
+        }
+      },
+      {
+        "type": "Package",
+        "title": "ntp",
+        "tags": ["package","ntp","class"],
+        "file": "/Users/alexharvey/git/create_specs_example/spec/fixtures/modules/ntp/manifests/init.pp",
+        "line": 4,
+        "exported": false,
+        "parameters": {
+          "ensure": "installed"
+        }
+      },
+      {
+        "type": "File",
+        "title": "/etc/ntp.conf",
+        "tags": ["file","class","ntp"],
+        "file": "/Users/alexharvey/git/create_specs_example/spec/fixtures/modules/ntp/manifests/init.pp",
+        "line": 8,
+        "exported": false,
+        "parameters": {
+          "ensure": "file",
+          "content": "driftfile /var/lib/ntp/drift\nrestrict default kod nomodify notrap nopeer noquery\nrestrict 127.0.0.1 \nserver 0.au.pool.ntp.org\nserver 1.au.pool.ntp.org\nserver 2.au.pool.ntp.org\nserver 3.au.pool.ntp.org\nincludefile /etc/ntp/crypto/pw\nkeys /etc/ntp/keys\n",
+          "require": "Package[ntp]"
+        }
+      },
+      {
+        "type": "Service",
+        "title": "ntp",
+        "tags": ["service","ntp","class"],
+        "file": "/Users/alexharvey/git/create_specs_example/spec/fixtures/modules/ntp/manifests/init.pp",
+        "line": 14,
+        "exported": false,
+        "parameters": {
+          "ensure": "running",
+          "enable": true,
+          "subscribe": "File[/etc/ntp.conf]"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "source": "Stage[main]",
+        "target": "Class[Settings]"
+      },
+      {
+        "source": "Stage[main]",
+        "target": "Class[main]"
+      },
+      {
+        "source": "Stage[main]",
+        "target": "Class[Ntp]"
+      },
+      {
+        "source": "Class[Ntp]",
+        "target": "Package[ntp]"
+      },
+      {
+        "source": "Class[Ntp]",
+        "target": "File[/etc/ntp.conf]"
+      },
+      {
+        "source": "Class[Ntp]",
+        "target": "Service[ntp]"
+      }
+    ],
+    "classes": [
+      "settings",
+      "ntp"
+    ]
+  },
+  "metadata": {
+    "api_version": 1
+  }
+}

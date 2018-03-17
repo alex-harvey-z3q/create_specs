@@ -243,5 +243,7 @@ class SpecWriter
 end
 
 # Main.
-catalog_file, output_file, options = parse_arguments
-SpecWriter.new(catalog_file, output_file, options).write
+if $0 == __FILE__
+  catalog_file, output_file, options = parse_arguments
+  SpecWriter.new(catalog_file, output_file, options).write
+end
