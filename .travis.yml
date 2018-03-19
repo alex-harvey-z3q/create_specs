@@ -1,0 +1,6 @@
+---
+language: ruby
+before_install: rm Gemfile.lock || true
+script: "bundle exec rake SPEC_OPTS='--format documentation'"
+notifications:
+  email: false

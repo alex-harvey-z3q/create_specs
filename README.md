@@ -2,6 +2,8 @@
 
 Release 2.3.0
 
+[![Build Status](https://img.shields.io/travis/alexharv074/create_specs.svg)](https://travis-ci.org/alexharv074/create_specs)
+
 ## Overview
 
 This script can be used to generate Rspec-puppet examples for all of the resources in a Puppet JSON catalog document. The intended use-cases include quickly generating default Rspec tests in a project that doesn't have any; and it is also be useful when refactoring Puppet modules.
