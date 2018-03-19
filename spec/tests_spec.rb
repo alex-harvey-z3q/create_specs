@@ -1,5 +1,6 @@
 require 'spec_helper'
 require_relative '../create_specs'
+require 'digest'
 
 describe SpecWriter do
   before(:all) do
