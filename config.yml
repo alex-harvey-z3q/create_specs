@@ -1,8 +1,17 @@
 ---
-default_excludes:
+# Resource types to exclude, i.e. to not write out as Rspec expectations. The
+# /::/ excludes all defined types.
+#
+:excludes:
   - Stage
   - Class
   - Anchor
   - Notify
   - Node
   - /::/
+
+# only_include and excludes are mutually exclusive, and only_include takes
+# precedence. A list of specific resources specified as [Type[title],...], to
+# be read as "only include [Type1[title2],Type2[title2]...].
+#
+:only_include: []

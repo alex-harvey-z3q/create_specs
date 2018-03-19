@@ -6,21 +6,8 @@ require 'fileutils'
 require 'awesome_print'
 require 'optparse'
 
-$default_output = 'spec/classes/init_spec.rb'
-
-# FIXME. It would be cleaner if this was turned into a default options, with an
-# option to specify a custom options file on the command line.
-#
-def default_excludes
-  config = [File.dirname($0), 'config.yml'].join('/')
-  return [] unless File.exists?(config)
-  return YAML.load_file(config)['default_excludes']
-end
-
 def parse_arguments
-  options = Hash.new { |h, k| h[k] = [] }
-  options[:excludes] = default_excludes
-  options[:only_include] = []
+  options = YAML.load_file($config)
 
   catalog_file = String.new
   output_file = $default_output
@@ -267,7 +254,10 @@ class SpecWriter
 end
 
 # Main.
+$default_output = 'spec/classes/init_spec.rb'
+
 if $0 == __FILE__
+  $config = [File.dirname($0), 'config.yml'].join('/')
   catalog_file, output_file, options = parse_arguments
   SpecWriter.new(catalog_file, output_file, options).write
 end
