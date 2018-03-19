@@ -1,6 +1,6 @@
 # create_specs.rb
 
-Release 2.3.0
+Release 2.3.1
 
 [![Build Status](https://img.shields.io/travis/alexharv074/create_specs.svg)](https://travis-ci.org/alexharv074/create_specs)
 
