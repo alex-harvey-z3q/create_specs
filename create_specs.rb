@@ -78,14 +78,20 @@ class SpecWriter
 
   # Set the class name based on the catalog content.
   #
-  # The assumption here is that the class name was used to compile the input
-  # catalog is found immediately after Class[main] in the resources array. This
-  # is true of all catalogs I have seen so far.
+  # The assumption here is that the class name that was used to compile the
+  # input catalog is the first resource of type Class found after the
+  # Class[main] in the resources array. This is true of all catalogs I have
+  # seen so far.
   #
   def class_name
+    class_main_found = false
     @catalog['resources'].each_with_index do |r,i|
       if r['type'] == 'Class' and r['title'] == 'main'
-        return @catalog['resources'][i+1]['title'].downcase
+        class_main_found = true
+        next
+      end
+      if class_main_found and r['type'] == 'Class'
+        return r['title'].downcase
       end
     end
   end
