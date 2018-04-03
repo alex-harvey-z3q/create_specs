@@ -81,6 +81,18 @@
         "enable": true,
         "subscribe": "File[/etc/ntp.conf]"
       }
+    },
+    {
+      "type": "Apt::Ppa",
+      "title": "ppa:nginx/stable",
+      "tags": ["apt::ppa","apt","ppa","class","ume::nginx::sources::apt","ume","nginx","sources","ume::nginx","ume::adminer","adminer"],
+      "file": "/Users/alexharvey/git/ume/kevin-puppet/spec/fixtures/modules/ume/manifests/nginx.pp",
+      "line": 20,
+      "exported": false,
+      "parameters": {
+        "ppa_options": "-y",
+        "release": "trusty"
+      }
     }
   ],
   "edges": [

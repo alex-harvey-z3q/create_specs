@@ -182,12 +182,16 @@ class SpecWriter
     end
   end
 
+  def matcher(type)
+    "contain_#{type.downcase.gsub('::', '__')}"
+  end
+
   def generate_examples_section
     @catalog['resources'].each do |r|
       title = r['title'].gsub(/'/, "\\\\'")
       @content +=
         "  it 'is expected to contain #{r['type'].downcase} #{title}' do\n" +
-        "    is_expected.to contain_#{r['type'].downcase}('#{title}').with({\n"
+        "    is_expected.to #{matcher(r['type'])}('#{title}').with({\n"
 
       r['parameters'].each do |k, v|
         unless r['type'] == 'File' and k == 'content'
