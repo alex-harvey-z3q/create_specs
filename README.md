@@ -6,7 +6,7 @@ Release 2.4.0
 
 ## Overview
 
-This script can be used to generate Rspec-puppet examples for all of the resources in a Puppet JSON catalog document. The intended use-cases include quickly generating default Rspec tests in a project that doesn't have any; and it is also be useful when refactoring Puppet modules.
+This script can be used to generate Rspec-puppet examples for all of the resources in a Puppet JSON catalog document. The intended use-cases include quickly generating default Rspec tests in a project that doesn't have any; and it can also be useful when refactoring Puppet modules.
 
 It is assumed that the user already knows how to set up Rspec-puppet for a Puppet module (i.e. how to create the `.fixtures.yml`, `Gemfile`, `spec/spec_helper.rb` etc).  If not, consider reading my [blog post](http://razorconsulting.com.au/setting-up-puppet-module-testing-from-scratch-part-ii-beaker-for-module-testing.html).
 
