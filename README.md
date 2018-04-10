@@ -27,6 +27,7 @@ $ create_specs.rb -h
   -x, --exclude RESOURCE       Resources to exclude. String or Regexp. Repeat this option to exclude multiple resources
   -i, --include RESOURCE       Resources to include despite the exclude list.
   -I, --only-include RESOURCE  Only include these resources and exclude everything else
+  -m, --md5sums                Use md5sums instead of full file content to validate file content
   -h, --help                   Print this help
 ```
 

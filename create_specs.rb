@@ -33,6 +33,10 @@ def parse_arguments
       'Only include these resources and exclude everything else') do |r|
       options[:only_include] << r
     end
+    opts.on('-m', '--md5sums',
+      'Use md5sums instead of full file content to validate file content') do |r|
+      options[:md5sums] = r
+    end
     opts.on('-h', '--help', 'Print this help') do
       puts opts
       exit 0
@@ -163,10 +167,10 @@ class SpecWriter
   end
 
   def generate_head_section
-    @content =
-      "require 'spec_helper'\n" +
-      "require 'json'\n\n"      +
-      "describe '#{@class_name}' do\n"
+    @content = "require 'spec_helper'\n"
+    @content += "require 'json'\n"   if not @params.nil?
+    @content += "require 'digest'\n" if @options[:md5sums]
+    @content += "\ndescribe '#{@class_name}' do\n"
   end
 
   def generate_params_section
@@ -226,19 +230,36 @@ class SpecWriter
           end
         end
 
-        unless r['parameters']['content'].nil?
-          @content +=
-            "  it 'is expected to contain expected content for file "   +
-                          "#{r['title']}' do\n"                         +
-            "    [\n\n"                                                 +
-            "\"#{r['parameters']['content']}\",\n\n"                    +
-            "    ].map{|text| text.split(\"\\n\")}.each do |line|\n\n"  +
-            "      verify_contents(catalogue, '#{r['title']}', line)\n" +
-            "    end\n"                                                 +
-            "  end\n\n"
+        if not r['parameters']['content'].nil?
+          if @options[:md5sums]
+            generate_md5sum_check(r['title'], r['parameters']['content'])
+          else
+            generate_content_check(r['title'], r['parameters']['content'])
+          end
         end
       end
     end
+  end
+
+  def generate_md5sum_check(title, content)
+    @content +=
+      "  it 'is expected to contain expected content for file "   +
+                    "#{title}' do\n"                              +
+      "    content = catalogue.resource('file', file).send(:parameters)[:content]\n" +
+      "    md5 = Digest::MD5.hexdigest(content)\n"                +
+      "  end\n\n"
+  end
+
+  def generate_content_check(title, content)
+    @content +=
+      "  it 'is expected to contain expected content for file "   +
+                    "#{title}' do\n"                         +
+      "    [\n\n"                                                 +
+      "\"#{content}\",\n\n"                    +
+      "    ].map{|text| text.split(\"\\n\")}.each do |line|\n\n"  +
+      "      verify_contents(catalogue, '#{title}', line)\n" +
+      "    end\n"                                                 +
+      "  end\n\n"
   end
 
   def generate_tail_section
