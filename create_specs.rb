@@ -30,7 +30,7 @@ def parse_arguments
       options[:excludes].delete_if { |x| x == r }
     end
     opts.on('-I', '--only-include RESOURCE',
-      'Only include these resources and exclude everything else') do |r|
+      'Only include these resources and exclude everything else. Regexp supported') do |r|
       options[:only_include] << r
     end
     opts.on('-m', '--md5sums',
@@ -134,26 +134,51 @@ class SpecWriter
   # than what is specified there.
   #
   def clean_catalog
-    if ! @options[:only_include].empty?
-      @catalog['resources'].delete_if do |resource|
-        delete_me = true
-        @options[:only_include].each do |i|
-          type, title = i.tr('[]',' ').split(' ')
-          resource['type'] == type and resource['title'] == title and delete_me = false
-        end
-        delete_me
-      end
+    if not @options[:only_include].empty?
+      clean_by_only_includes
     else
+      clean_by_includes
+    end
+  end
+
+  def clean_by_only_includes
+    @catalog['resources'].delete_if do |resource|
+
+      typ = resource['type']
+      tit = resource['title']
+
       delete_me = true
-      @catalog['resources'].delete_if do |resource|
-        delete_me = false
-        @options[:excludes].each do |x|
-          delete_me = true if resource['type'] == x
-          delete_me = true if
-            x =~ /^\/.*\/$/ and eval "resource['type'] =~ #{x}"
+
+      # TODO: handle invalid regexps gracefully.
+      #
+      @options[:only_include].each do |i|
+        if i =~ /^\/.*\/$/
+          # regard this as matching types
+          eval "typ =~ #{i} and delete_me = false"
+        elsif i =~ /.*\[\/.*\/\]/
+          # matching title
+          type, title = i.tr('[]',' ').split(' ')
+          eval "typ == type and
+            tit =~ #{title} and delete_me = false"
+        else
+          type, title = i.tr('[]',' ').split(' ')
+          typ == type and tit == title and delete_me = false
         end
-        delete_me
       end
+      delete_me
+    end
+  end
+
+  def clean_by_includes
+    delete_me = true
+    @catalog['resources'].delete_if do |resource|
+      delete_me = false
+      @options[:excludes].each do |x|
+        delete_me = true if resource['type'] == x
+        delete_me = true if
+          x =~ /^\/.*\/$/ and eval "resource['type'] =~ #{x}"
+      end
+      delete_me
     end
   end
 

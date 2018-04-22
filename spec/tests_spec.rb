@@ -97,17 +97,67 @@ describe SpecWriter do
 
   context 'include-only option' do
     before(:all) do
-      @options[:only_include] = ['Service[ntp]']
       @options[:md5sums] = false
     end
 
-    it 'should generate output file with expected md5sum' do
+    it 'only include Service[ntp]' do
+      @options[:only_include] = ['Service[ntp]']
       @spec_writer = SpecWriter.new(
         'spec/fixtures/ntp.json', @output_file, @options
       )
       @spec_writer.write
       md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
       expect(md5).to eq "5a7e67ac7fc8ad94e27760fc7c39346b"
+    end
+
+    it 'only include File[/.*/]' do
+      @options[:only_include] = ['File[/.*/]']
+      @spec_writer = SpecWriter.new(
+        'spec/fixtures/ntp.json', @output_file, @options
+      )
+      @spec_writer.write
+      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      expect(md5).to eq "d15e003e815966267de7545924dab158"
+    end
+
+    it 'only include File[/ntp.conf/]' do
+      @options[:only_include] = ['File[/ntp.conf/]']
+      @spec_writer = SpecWriter.new(
+        'spec/fixtures/ntp.json', @output_file, @options
+      )
+      @spec_writer.write
+      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      expect(md5).to eq "d15e003e815966267de7545924dab158"
+    end
+
+    it 'only include File[/\/etc\/ntp\.conf/]' do
+      @options[:only_include] = ['File[/\/etc\/ntp\.conf/]']
+      @spec_writer = SpecWriter.new(
+        'spec/fixtures/ntp.json', @output_file, @options
+      )
+      @spec_writer.write
+      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      expect(md5).to eq "d15e003e815966267de7545924dab158"
+    end
+
+    it 'only include /File/' do
+      @options[:only_include] = ['/File/']
+      @spec_writer = SpecWriter.new(
+        'spec/fixtures/ntp.json', @output_file, @options
+      )
+      @spec_writer.write
+      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      expect(md5).to eq "d15e003e815966267de7545924dab158"
+    end
+
+    it 'only include File[/xyz/]' do
+      @options[:only_include] = ['File[/xyz/]']
+      @spec_writer = SpecWriter.new(
+        'spec/fixtures/ntp.json', @output_file, @options
+      )
+      @spec_writer.write
+      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      expect(md5).to eq "39d77ccaa27a6d31b0c2fbd301fc7e8d" # looks like a file with no resources
     end
   end
 

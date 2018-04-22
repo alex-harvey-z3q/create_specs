@@ -16,6 +16,26 @@ This tool uses the [awesome_print](https://github.com/awesome-print/awesome_prin
 
 Also, be aware that the generated spec depends on the `verify_contents` method that is normally found inside Puppetlabs-spec-helper.
 
+## Installation
+
+Install by cloning this repo:
+
+```
+$ git clone https://github.com/alexharv074/create_specs.git
+```
+
+Then add a line to your .bash_profile like:
+
+```
+export PATH=/Users/alexharvey/git/create_specs:$PATH
+```
+
+Ensure you have the dependencies:
+
+```
+$ gem install awesome_print
+```
+
 ## Usage
 
 Help message:
@@ -31,6 +51,8 @@ $ create_specs.rb -h
   -h, --help                   Print this help
 ```
 
+### Basic usage
+
 Basic usage:
 
 ```
@@ -42,16 +64,12 @@ This will cause the resources in `catalog.json` to be rewritten as Rspec-puppet 
 
 By default, the script excludes all defined types as well as Class, Anchor, Notify and Node resources (see `config.yml`).
 
+### include option
+
 If you want to override and include one or more of these, use the `-i` option:
 
 ```
 $ create_specs.rb -c catalog.json -i Class -i Node
-```
-
-If you want to exclude additional resource types, use the `-x` option:
-
-```
-$ create_specs.rb -c catalog.json -x User -x Group
 ```
 
 To include defined types:
@@ -60,13 +78,40 @@ To include defined types:
 $ create_specs.rb -c catalog.json -i /::/
 ```
 
+Due to a quirk of the implementation (again, see `config.yml`) it is not possible to include a specific defined type only. Using `-i My::Type` would not override the default behaviour to exclude everything matching `/::/`. To work around that use -I.
+
+### exclude option
+
+If you want to exclude additional resource types, use the `-x` option:
+
+```
+$ create_specs.rb -c catalog.json -x User -x Group
+```
+
+### only include option
+
 It is also possible to exclude everything other than a list of resources you care about. Use the `-I` option for this:
 
 ```
 $ create_specs.rb -c catalog.json -I 'Service[ntp]' -I 'File[ntp]'
 ```
 
-Due to a quirk of the implementation (again, see `config.yml`) it is not possible to include a specific defined type only. Using `-i My::Type` would not override the default behaviour to exclude everything matching `/::/`.
+This option can also accept regular expressions, e.g.:
+
+Only include all files:
+
+```
+$ create_specs.rb -c catalog.json -I '/File/'  # or
+$ create_specs.rb -c catalog.json -I 'File[/.*/]'
+```
+
+Only include files in /etc/ssl:
+
+```
+$ create_spec.rb -c catalog.json -I 'File[/\/etc\/ssl/]'
+```
+
+### output option
 
 To specify a different output file:
 
