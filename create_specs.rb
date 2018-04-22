@@ -192,49 +192,58 @@ class SpecWriter
 
   def generate_examples_section
     @catalog['resources'].each do |r|
-      title = r['title'].gsub(/'/, "\\\\'")
-      @content +=
-        "  it 'is expected to contain #{r['type'].downcase} #{title}' do\n" +
-        "    is_expected.to #{matcher(r['type'])}('#{title}').with({\n"
 
-      r['parameters'].each do |k, v|
-        unless r['type'] == 'File' and k == 'content'
-          if v.is_a?(String)
+      type       = r['type']
+      title      = r['title'].gsub(/'/, "\\\\'")
+      parameters = r['parameters']
+
+      @content +=
+        "  it 'is expected to contain #{type.downcase} #{title}' do\n" +
+        "    is_expected.to #{matcher(type)}('#{title}').with({\n"
+
+      parameters.each do |k, v|
+        unless type == 'File' and k == 'content'
+          if v.class == String
             v.gsub!(/'/, "\\\\'")
             @content += "      '#{k}' => '#{v}',\n"
           elsif [Integer, TrueClass, FalseClass].include?(v.class)
             @content += "      '#{k}' => '#{v}',\n"
           elsif v.is_a?(Array)
             @content += "      '#{k}' => #{v},\n"
+          else
+            raise "Unhandled input at #{type}[#{title}] of class #{v.class}"
           end
         end
       end
 
       @content += "    })\n  end\n\n"
 
-      if r['type'] == 'File' and
-        (r['parameters']['ensure'] == 'file' or
-         r['parameters']['ensure'] == 'present' or
-         ! r['parameters'].has_key?('ensure'))
+      ensr = parameters['ensure']
+      cont = parameters['content']
 
-        if r['parameters'].has_key?('content')
+      if type == 'File' and
+        (ensr == 'file' or
+         ensr == 'present' or
+         ! parameters.has_key?('ensure'))
+
+        if parameters.has_key?('content')
           begin
-            r['parameters']['content'].gsub!('\\') { '\\\\' }
-            r['parameters']['content'].gsub!(/"/, '\"')
-            r['parameters']['content'].gsub!(/\@/, '\@')
-            r['parameters']['content'].gsub!(/\$;/, '\\$;')
-            r['parameters']['content'].gsub!(
+            cont.gsub!('\\') { '\\\\' }
+            cont.gsub!(/"/, '\"')
+            cont.gsub!(/\@/, '\@')
+            cont.gsub!(/\$;/, '\\$;')
+            cont.gsub!(
               /\$EscapeControlCharactersOnReceive/,
               '\\$EscapeControlCharactersOnReceive')  # A weird special Ruby
           rescue
           end
         end
 
-        if not r['parameters']['content'].nil?
+        if not cont.nil?
           if @options[:md5sums]
-            generate_md5sum_check(r['title'], r['parameters']['content'])
+            generate_md5sum_check(title, cont)
           else
-            generate_content_check(r['title'], r['parameters']['content'])
+            generate_content_check(title, cont)
           end
         end
       end
