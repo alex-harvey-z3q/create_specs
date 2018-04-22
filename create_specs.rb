@@ -206,9 +206,9 @@ class SpecWriter
           if v.class == String
             v.gsub!(/'/, "\\\\'")
             @content += "      '#{k}' => '#{v}',\n"
-          elsif [Integer, TrueClass, FalseClass].include?(v.class)
+          elsif [Fixnum, Integer, TrueClass, FalseClass].include?(v.class)
             @content += "      '#{k}' => '#{v}',\n"
-          elsif v.is_a?(Array)
+          elsif [Array, Hash].include?(v.class)
             @content += "      '#{k}' => #{v},\n"
           else
             raise "Unhandled input at #{type}[#{title}] of class #{v.class}"
