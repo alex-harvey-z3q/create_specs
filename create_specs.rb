@@ -18,6 +18,9 @@ def parse_arguments
     opts.on('-c', '--catalog CATALOG', 'Path to the catalog JSON file') do |c|
       catalog_file = c
     end
+    opts.on('-C', '--class CLASS', 'Class (or node) name under test') do |c|
+      options[:class_name] = c
+    end
     opts.on('-o', '--output OUTPUTFILE', 'Path to the output Rspec file') do |o|
       output_file = o
     end
@@ -89,6 +92,7 @@ class SpecWriter
   # seen so far.
   #
   def class_name
+    return @options[:class_name] if not @options[:class_name].nil?
     class_main_found = false
     @catalog['resources'].each_with_index do |r,i|
       if r['type'] == 'Class' and r['title'] == 'main'
@@ -187,6 +191,7 @@ class SpecWriter
   #
   def generate_content
     generate_head_section
+    generate_setup_section
     generate_params_section
     generate_examples_section
     generate_tail_section
@@ -197,6 +202,36 @@ class SpecWriter
     @content += "require 'json'\n"   if not @params.nil?
     @content += "require 'digest'\n" if @options[:md5sums]
     @content += "\ndescribe '#{@class_name}' do\n"
+  end
+
+  def generate_setup_section
+    return if @options[:setup].empty?
+    setup = @options[:setup]
+    if setup.has_key?(:pre_condition)
+      @content +=
+        "  let(:pre_condition) do\n" +
+        '    """'"\n"
+      setup[:pre_condition].each do |l|
+        @content += "    #{l}\n"
+      end
+        @content +=
+          '    """'"\n" +
+          "  end\n\n"
+    end
+    if setup.has_key?(:hiera_config)
+      @content += "  let(:hiera_config){ '#{setup[:hiera_config]}' }\n\n"
+    end
+    if setup.has_key?(:facts)
+      @content +=
+        "  let(:facts) do\n    " +
+        setup[:facts].awesome_inspect(
+          :index  => false,
+          :indent => -2,
+          :plain  => true,
+        )
+        .
+        gsub(/\n/m, "\n    ") + "\n  end\n\n"
+    end
   end
 
   def generate_params_section
@@ -213,14 +248,14 @@ class SpecWriter
   end
 
   def matcher(type)
-    "contain_#{type.downcase.gsub('::', '__')}"
+    "contain_#{type.downcase.gsub '::', '__'}"
   end
 
   def generate_examples_section
     @catalog['resources'].each do |r|
 
       type       = r['type']
-      title      = r['title'].gsub(/'/, "\\\\'")
+      title      = r['title'].gsub /'/, "\\\\'"
       parameters = r['parameters']
 
       @content +=
@@ -230,7 +265,7 @@ class SpecWriter
       parameters.each do |k, v|
         unless type == 'File' and k == 'content'
           if v.class == String
-            v.gsub!(/'/, "\\\\'")
+            v.gsub! /'/, "\\\\'"
             @content += "      '#{k}' => '#{v}',\n"
           elsif [Fixnum, Integer, TrueClass, FalseClass].include?(v.class)
             @content += "      '#{k}' => '#{v}',\n"
@@ -255,12 +290,12 @@ class SpecWriter
         if parameters.has_key?('content')
           begin
             cont.gsub!('\\') { '\\\\' }
-            cont.gsub!(/"/, '\"')
-            cont.gsub!(/\@/, '\@')
-            cont.gsub!(/\$;/, '\\$;')
+            cont.gsub! /"/, '\"'
+            cont.gsub! /\@/, '\@'
+            cont.gsub! /\$;/, '\\$;'
             cont.gsub!(
               /\$EscapeControlCharactersOnReceive/,
-              '\\$EscapeControlCharactersOnReceive')  # A weird special Ruby
+              '\\$EscapeControlCharactersOnReceive') # A weird special Ruby
           rescue
           end
         end
@@ -279,36 +314,36 @@ class SpecWriter
   def generate_md5sum_check(title, content)
     md5 = Digest::MD5.hexdigest(content)
     @content +=
-      "  it 'is expected to contain expected content for file "   +
-                    "#{title}' do\n"                              +
+      "  it 'is expected to contain expected content for file "  +
+                    "#{title}' do\n"                             +
       "    content = catalogue.resource('file', file).send(:parameters)[:content]\n" +
-      "    md5 = Digest::MD5.hexdigest(content)\n"                +
-      "    expect(md5).to eq '#{md5}'\n"                          +
+      "    md5 = Digest::MD5.hexdigest(content)\n"               +
+      "    expect(md5).to eq '#{md5}'\n"                         +
       "  end\n\n"
   end
 
   def generate_content_check(title, content)
     @content +=
       "  it 'is expected to contain expected content for file "   +
-                    "#{title}' do\n"                         +
+                    "#{title}' do\n"                              +
       "    [\n\n"                                                 +
-      "\"#{content}\",\n\n"                    +
+      "\"#{content}\",\n\n"                                       +
       "    ].map{|text| text.split(\"\\n\")}.each do |line|\n\n"  +
-      "      verify_contents(catalogue, '#{title}', line)\n" +
+      "      verify_contents(catalogue, '#{title}', line)\n"      +
       "    end\n"                                                 +
       "  end\n\n"
   end
 
   def generate_tail_section
-    file_name = @class_name.gsub(/::/, '__')
+    file_name = @class_name.gsub /::/, '__'
     unless ! @options[:only_include].empty?
       @content +=
-        "  it 'should write a compiled catalog' do\n" +
-        "    is_expected.to compile.with_all_deps\n"  +
-        "    File.write(\n"                           +
-        "      'catalogs/#{file_name}.json',\n"       +
-        "      PSON.pretty_generate(catalogue)\n"     +
-        "    )\n"                                     +
+        "  it 'should write a compiled catalog' do\n"  +
+        "    is_expected.to compile.with_all_deps\n"   +
+        "    File.write(\n"                            +
+        "      'catalogs/#{file_name}.json',\n"        +
+        "      PSON.pretty_generate(catalogue)\n"      +
+        "    )\n"                                      +
         "  end\n"
     end
     @content += "end\n"

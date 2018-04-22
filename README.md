@@ -42,13 +42,15 @@ Help message:
 
 ```
 $ create_specs.rb -h
-  -c, --catalog CATALOG        Path to the catalog JSON file
-  -o, --output OUTPUTFILE      Path to the output Rspec file
-  -x, --exclude RESOURCE       Resources to exclude. String or Regexp. Repeat this option to exclude multiple resources
-  -i, --include RESOURCE       Resources to include despite the exclude list.
-  -I, --only-include RESOURCE  Only include these resources and exclude everything else
-  -m, --md5sums                Use md5sums instead of full file content to validate file content
-  -h, --help                   Print this help
+Usage: create_specs.rb [options]
+  -c, --catalog CATALOG       Path to the catalog JSON file
+  -C, --class CLASS           Class (or node) name under test
+  -o, --output OUTPUTFILE     Path to the output Rspec file
+  -x, --exclude RESOURCE      Resources to exclude. String or Regexp. Repeat this option to exclude multiple resources
+  -i, --include RESOURCE      Resources to include despite the exclude list.
+  -I, --only-include RESOURCE Only include these resources and exclude everything else. Regexp supported
+  -m, --md5sums               Use md5sums instead of full file content to validate file content
+  -h, --help                  Print this help
 ```
 
 ### Basic usage
@@ -117,6 +119,14 @@ To specify a different output file:
 
 ```
 $ create_specs.rb -c /path/to/catalog.json -o path/to/output_spec.rb
+```
+
+### class name option
+
+By default, the class name that was used to generate the catalog is guessed. In some edge-cases (e.g. if a pre-condition is used in the set up that first declares a different class) the auto-detected class is wrong. To get around this, use the -C option:
+
+```
+$ create_specs.rb -c /path/to/catalog.json -C class
 ```
 
 ## Creating the catalog document

@@ -20,3 +20,9 @@
 # generated tests.
 #
 :md5sums: false
+
+# Class name to declare. By default is auto-detected.
+:class_name: null
+
+# Default setup.
+:setup: {}

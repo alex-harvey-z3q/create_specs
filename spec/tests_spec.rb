@@ -9,6 +9,8 @@ describe SpecWriter do
       :excludes => ['Stage', 'Class', 'Anchor', 'Notify', 'Node', '/::/'],
       :only_include => [],
       :md5sums => false,
+      :class_name => nil,
+      :setup => {},
     }
   end
 
@@ -158,6 +160,22 @@ describe SpecWriter do
       @spec_writer.write
       md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
       expect(md5).to eq "39d77ccaa27a6d31b0c2fbd301fc7e8d" # looks like a file with no resources
+    end
+  end
+
+  context 'user-specified class_name' do
+    before(:all) do
+      @options[:only_include] = []
+    end
+
+    it 'should use a user-specified class name' do
+      @options[:class_name] = 'default'
+      @spec_writer = SpecWriter.new(
+        'spec/fixtures/ntp.json', @output_file, @options
+      )
+      @spec_writer.write
+      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      expect(md5).to eq "0a03d975ae5b8f54e0baeda176a466d3"
     end
   end
 
