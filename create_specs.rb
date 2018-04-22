@@ -5,6 +5,7 @@ require 'yaml'
 require 'fileutils'
 require 'awesome_print'
 require 'optparse'
+require 'digest'
 
 def parse_arguments
   options = YAML.load_file($config)
@@ -276,11 +277,13 @@ class SpecWriter
   end
 
   def generate_md5sum_check(title, content)
+    md5 = Digest::MD5.hexdigest(content)
     @content +=
       "  it 'is expected to contain expected content for file "   +
                     "#{title}' do\n"                              +
       "    content = catalogue.resource('file', file).send(:parameters)[:content]\n" +
       "    md5 = Digest::MD5.hexdigest(content)\n"                +
+      "    expect(md5).to eq '#{md5}'\n"                          +
       "  end\n\n"
   end
 

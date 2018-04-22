@@ -91,7 +91,7 @@ describe SpecWriter do
       )
       @spec_writer.write
       md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
-      expect(md5).to eq "537cec8d1f60c7aa0b736a3d2badd5d0"
+      expect(md5).to eq "1a4c288bba2bca9495b626888222e3d9"
     end
   end
 
