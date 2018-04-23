@@ -287,13 +287,15 @@ class SpecWriter
          ensr == 'present' or
          ! parameters.has_key?('ensure'))
 
+        mod = cont.clone
+
         if parameters.has_key?('content')
           begin
-            cont.gsub!('\\') { '\\\\' }
-            cont.gsub! /"/, '\"'
-            cont.gsub! /\@/, '\@'
-            cont.gsub! /\$;/, '\\$;'
-            cont.gsub!(
+            mod.gsub!('\\') { '\\\\' }
+            mod.gsub! /"/, '\"'
+            mod.gsub! /\@/, '\@'
+            mod.gsub! /\$;/, '\\$;'
+            mod.gsub!(
               /\$EscapeControlCharactersOnReceive/,
               '\\$EscapeControlCharactersOnReceive') # A weird special Ruby
           rescue
@@ -304,7 +306,7 @@ class SpecWriter
           if @options[:md5sums]
             generate_md5sum_check(title, cont)
           else
-            generate_content_check(title, cont)
+            generate_content_check(title, mod)
           end
         end
       end
@@ -316,7 +318,7 @@ class SpecWriter
     @content +=
       "  it 'is expected to contain expected content for file "  +
                     "#{title}' do\n"                             +
-      "    content = catalogue.resource('file', file).send(:parameters)[:content]\n" +
+      "    content = catalogue.resource('file', '#{title}').send(:parameters)[:content]\n" +
       "    md5 = Digest::MD5.hexdigest(content)\n"               +
       "    expect(md5).to eq '#{md5}'\n"                         +
       "  end\n\n"
