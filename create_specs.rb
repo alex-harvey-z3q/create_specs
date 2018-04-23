@@ -163,20 +163,24 @@ class SpecWriter
       # TODO: handle invalid regexps gracefully.
       #
       @options[:only_include].each do |i|
-        if i =~ /^\/.*\/$/
-          # regard this as matching types
-          eval "typ =~ #{i} and delete_me = false"
-        elsif i =~ /.*\[\/.*\/\]/
-          # matching title
-          type, title = i.tr('[]',' ').split(' ')
-          eval "typ == type and
-            tit =~ #{title} and delete_me = false"
+        type, title = i.tr('[]',' ').split(' ') if i =~ /\[/
+        if i =~ /^\/.*\/$/         # e.g. /File/
+          regexp("arg =~ #{i}", typ) and delete_me = false
+        elsif i =~ /.*\[\/.*\/\]/  # e.g. File[/.*/]
+          typ == type and regexp("arg =~ #{title}", tit) and delete_me = false
         else
-          type, title = i.tr('[]',' ').split(' ')
           typ == type and tit == title and delete_me = false
         end
       end
       delete_me
+    end
+  end
+
+  def regexp(regexp, arg)
+    begin
+      eval regexp
+    rescue SyntaxError
+      raise "Regexp in #{regexp} invalid (see your only_includes list)"
     end
   end
 

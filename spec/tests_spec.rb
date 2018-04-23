@@ -143,6 +143,12 @@ describe SpecWriter do
       md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
       expect(md5).to eq "ac718c6d0eaf05883e36750b83ebe007" # a file with params and compile only.
     end
+
+    it 'only include an invalid regexp File[/xyz(/]' do
+      @options[:only_include] = ['File[/xyz(/]']
+      @spec_writer = SpecWriter.new(@options)
+      expect { @spec_writer.write }.to raise_error(RuntimeError)
+    end
   end
 
   context 'user-specified class_name' do
