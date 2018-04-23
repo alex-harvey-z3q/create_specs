@@ -43,6 +43,7 @@ Help message:
 ```
 $ create_specs.rb -h
 Usage: create_specs.rb [options]
+  -f, --config_file CONFIG    Path to config file
   -c, --catalog CATALOG       Path to the catalog JSON file
   -C, --class CLASS           Class (or node) name under test
   -o, --output OUTPUTFILE     Path to the output Rspec file
@@ -50,6 +51,7 @@ Usage: create_specs.rb [options]
   -i, --include RESOURCE      Resources to include despite the exclude list.
   -I, --only-include RESOURCE Only include these resources and exclude everything else. Regexp supported
   -m, --md5sums               Use md5sums instead of full file content to validate file content
+  -t, --[no-]compile-test     Include or exclude the catalog compilation test
   -h, --help                  Print this help
 ```
 
@@ -127,6 +129,55 @@ By default, the class name that was used to generate the catalog is guessed. In 
 
 ```
 $ create_specs.rb -c /path/to/catalog.json -C class
+```
+
+### compile test option
+
+The default behaviour is to include a compile test as follows:
+
+``` ruby
+  it 'should write a compiled catalog' do
+    is_expected.to compile.with_all_deps
+    File.write(
+      'catalogs/class_name.json',
+      PSON.pretty_generate(catalogue)
+    )
+  end
+```
+
+This can be disabled by specifying `--no-compile-test`.
+
+### Specifying custom setup
+
+By using the -f option, it is possible to pass a custom config.yml file with a custom setup section in it. For example, if your config.yml contained:
+
+``` yaml
+:setup:
+  :pre_condition:
+    - hiera_include('classes')
+  :hiera_config: spec/fixtures/hiera.yaml
+  :facts:
+    foo: bar
+    baz: qux
+```
+
+This would result in auto-generated Rspec code with:
+
+``` ruby
+  let(:pre_condition) do
+    """
+    hiera_include('classes')
+    """
+  end
+
+  let(:hiera_config){ 'spec/fixtures/hiera.yaml' }
+
+  let(:facts) do
+    {
+      "foo" => "bar",
+      "baz" => "qux"
+    }
+  end
 ```
 
 ## Creating the catalog document

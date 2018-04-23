@@ -71,16 +71,14 @@ describe SpecWriter do
       @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
       expect(File.exists?(@options[:output_file])).to be true
-    end
-
-    after(:all) do
-      FileUtils.rm(@new_output_file)
+      FileUtils.rm(@options[:output_file])
     end
   end
 
   context 'md5sum option' do
     before(:all) do
       @options[:md5sums] = true
+      @options[:output_file] = 'ntp_spec.rb'
     end
 
     it 'should generate output file with expected md5sum' do
@@ -162,6 +160,26 @@ describe SpecWriter do
       @spec_writer.write
       md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
       expect(md5).to eq "0a03d975ae5b8f54e0baeda176a466d3"
+    end
+  end
+
+  context 'custom setup' do
+    before(:all) do
+      @options[:setup] = {
+        :pre_condition => ["hiera_include('classes')"],
+        :hiera_config  => 'spec/fixtures/hiera.yaml',
+        :facts         => {
+          'foo' => 'bar',
+          'baz' => 'qux',
+        },
+      }
+    end
+
+    it 'should intepolate custom setup code' do
+      @spec_writer = SpecWriter.new(@options)
+      @spec_writer.write
+      md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
+      expect(md5).to eq "d645bd611fdddcb907755879c09efce7"
     end
   end
 
