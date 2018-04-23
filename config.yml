@@ -30,6 +30,9 @@
 # Default output file. Can be over-ridden via -o.
 :output_file: spec/classes/init_spec.rb
 
+# Compile test. Include or don't include the test for compilation.
+:compile_test: true
+
 # Default setup.
 :setup: {}
 

@@ -11,6 +11,7 @@ describe SpecWriter do
       :class_name => nil,
       :setup => {},
       :output_file => 'ntp_spec.rb',
+      :compile_test => true,
     }
   end
 
@@ -100,7 +101,7 @@ describe SpecWriter do
       @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
       md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
-      expect(md5).to eq "5a7e67ac7fc8ad94e27760fc7c39346b"
+      expect(md5).to eq "b11147a8f515c49ead968bf9e37db206"
     end
 
     it 'only include File[/.*/]' do
@@ -108,7 +109,7 @@ describe SpecWriter do
       @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
       md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
-      expect(md5).to eq "d15e003e815966267de7545924dab158"
+      expect(md5).to eq "28a997b02c5f5322a28e9849fe5b1046"
     end
 
     it 'only include File[/ntp.conf/]' do
@@ -116,7 +117,7 @@ describe SpecWriter do
       @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
       md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
-      expect(md5).to eq "d15e003e815966267de7545924dab158"
+      expect(md5).to eq "28a997b02c5f5322a28e9849fe5b1046"
     end
 
     it 'only include File[/\/etc\/ntp\.conf/]' do
@@ -124,7 +125,7 @@ describe SpecWriter do
       @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
       md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
-      expect(md5).to eq "d15e003e815966267de7545924dab158"
+      expect(md5).to eq "28a997b02c5f5322a28e9849fe5b1046"
     end
 
     it 'only include /File/' do
@@ -132,7 +133,7 @@ describe SpecWriter do
       @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
       md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
-      expect(md5).to eq "d15e003e815966267de7545924dab158"
+      expect(md5).to eq "28a997b02c5f5322a28e9849fe5b1046"
     end
 
     it 'only include File[/xyz/]' do
@@ -140,7 +141,7 @@ describe SpecWriter do
       @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
       md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
-      expect(md5).to eq "39d77ccaa27a6d31b0c2fbd301fc7e8d" # looks like a file with no resources
+      expect(md5).to eq "ac718c6d0eaf05883e36750b83ebe007" # a file with params and compile only.
     end
   end
 

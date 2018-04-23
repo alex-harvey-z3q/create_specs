@@ -43,6 +43,9 @@ def parse_arguments
       'Use md5sums instead of full file content to validate file content') do |r|
       options[:md5sums] = r
     end
+    opts.on('-t', '--[no-]compile-test', 'Include or exclude the catalog compilation test') do |r|
+      options[:compile_test] = r
+    end
     opts.on('-h', '--help', 'Print this help') do
       puts opts
       exit 0
@@ -341,7 +344,7 @@ class SpecWriter
 
   def generate_tail_section
     file_name = @class_name.gsub /::/, '__'
-    unless ! @options[:only_include].empty?
+    unless not @options[:compile_test]
       @content +=
         "  it 'should write a compiled catalog' do\n"  +
         "    is_expected.to compile.with_all_deps\n"   +
