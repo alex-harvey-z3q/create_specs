@@ -7,22 +7,24 @@ require 'awesome_print'
 require 'optparse'
 require 'digest'
 
-def parse_arguments
-  options = YAML.load_file($config)
+$default_config = [File.dirname($0), 'config.yml'].join('/')
 
-  catalog_file = String.new
-  output_file = $default_output
+def parse_arguments
+  options = YAML.load_file($default_config)
 
   OptionParser.new do |opts|
     opts.banner = "Usage: #{File.basename($0)} [options]"
+    opts.on('-f', '--config_file CONFIG', 'Path to config file') do |c|
+      options = YAML.load_file(c)
+    end
     opts.on('-c', '--catalog CATALOG', 'Path to the catalog JSON file') do |c|
-      catalog_file = c
+      options[:catalog_file] = c
     end
     opts.on('-C', '--class CLASS', 'Class (or node) name under test') do |c|
       options[:class_name] = c
     end
     opts.on('-o', '--output OUTPUTFILE', 'Path to the output Rspec file') do |o|
-      output_file = o
+      options[:output_file] = o
     end
     opts.on('-x', '--exclude RESOURCE', [
       'Resources to exclude. String or Regexp. ',
@@ -47,6 +49,8 @@ def parse_arguments
     end
   end.parse!
 
+  catalog_file = options[:catalog_file]
+
   if catalog_file.empty?
     puts 'You must specify a catalog file via -c'
     exit 1
@@ -57,18 +61,17 @@ def parse_arguments
     exit 1
   end
 
-  return [catalog_file, output_file, options]
+  return options
 end
 
 # Class for rewriting a catalog as a spec file.
 #
 class SpecWriter
-  def initialize(catalog_file, output_file, options)
-    @catalog_file = catalog_file
-    @output_file = output_file
+  def initialize(options)
     @options = options
+    @output_file = options[:output_file]
 
-    @catalog = JSON.parse(File.read(@catalog_file))
+    @catalog = JSON.parse(File.read(options[:catalog_file]))
     convert_to_v4
 
     @content = String.new
@@ -359,10 +362,7 @@ class SpecWriter
 end
 
 # Main.
-$default_output = 'spec/classes/init_spec.rb'
-
 if $0 == __FILE__
-  $config = [File.dirname($0), 'config.yml'].join('/')
-  catalog_file, output_file, options = parse_arguments
-  SpecWriter.new(catalog_file, output_file, options).write
+  options = parse_arguments
+  SpecWriter.new(options).write
 end

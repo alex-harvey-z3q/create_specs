@@ -4,13 +4,13 @@ require 'digest'
 
 describe SpecWriter do
   before(:all) do
-    @output_file = 'ntp_spec.rb'
     @options = {
       :excludes => ['Stage', 'Class', 'Anchor', 'Notify', 'Node', '/::/'],
       :only_include => [],
       :md5sums => false,
       :class_name => nil,
       :setup => {},
+      :output_file => 'ntp_spec.rb',
     }
   end
 
@@ -23,14 +23,13 @@ describe SpecWriter do
 
   context 'default options' do
     it 'should not raise errors' do
-      @spec_writer = SpecWriter.new(
-        'spec/fixtures/ntp.json', @output_file, @options
-      )
+      @options[:catalog_file] = 'spec/fixtures/ntp.json'
+      @spec_writer = SpecWriter.new(@options)
       expect { @spec_writer.write }.to_not raise_error
     end
 
     it 'should generate output file with expected md5sum' do
-      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
       expect(md5).to eq "e5f0e3238e223d459d016a363847421d"
     end
   end
@@ -41,40 +40,36 @@ describe SpecWriter do
     end
 
     it 'should not raise errors' do
-      @spec_writer = SpecWriter.new(
-        'spec/fixtures/ntp.json', @output_file, @options
-      )
+      @spec_writer = SpecWriter.new(@options)
       expect { @spec_writer.write }.to_not raise_error
     end
 
     it 'should generate output file with expected md5sum' do
-      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
       expect(md5).to eq "362ae493fb4ff352065360ac60f85704"
     end
   end
 
   context 'a v3 version of the catalog' do
     it 'should generate output file with expected md5sum' do
-      @spec_writer = SpecWriter.new(
-        'spec/fixtures/ntp_v3.json', @output_file, @options
-      )
+      @options[:catalog_file] = 'spec/fixtures/ntp_v3.json'
+      @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
-      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
       expect(md5).to eq "e5f0e3238e223d459d016a363847421d"
     end
   end
 
   context 'set a different output file' do
     before(:all) do
-      @new_output_file = 'new_output_file.rb'
+      @options[:output_file] = 'new_output_file.rb'
+      @options[:catalog_file] = 'spec/fixtures/ntp.json'
     end
 
     it 'should write to a new locations' do
-      @spec_writer = SpecWriter.new(
-        'spec/fixtures/ntp.json', @new_output_file, @options
-      )
+      @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
-      expect(File.exists?(@new_output_file)).to be true
+      expect(File.exists?(@options[:output_file])).to be true
     end
 
     after(:all) do
@@ -88,11 +83,9 @@ describe SpecWriter do
     end
 
     it 'should generate output file with expected md5sum' do
-      @spec_writer = SpecWriter.new(
-        'spec/fixtures/ntp.json', @output_file, @options
-      )
+      @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
-      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
       expect(md5).to eq "4a25c4880a7f2022767af1394a9417b9"
     end
   end
@@ -104,61 +97,49 @@ describe SpecWriter do
 
     it 'only include Service[ntp]' do
       @options[:only_include] = ['Service[ntp]']
-      @spec_writer = SpecWriter.new(
-        'spec/fixtures/ntp.json', @output_file, @options
-      )
+      @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
-      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
       expect(md5).to eq "5a7e67ac7fc8ad94e27760fc7c39346b"
     end
 
     it 'only include File[/.*/]' do
       @options[:only_include] = ['File[/.*/]']
-      @spec_writer = SpecWriter.new(
-        'spec/fixtures/ntp.json', @output_file, @options
-      )
+      @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
-      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
       expect(md5).to eq "d15e003e815966267de7545924dab158"
     end
 
     it 'only include File[/ntp.conf/]' do
       @options[:only_include] = ['File[/ntp.conf/]']
-      @spec_writer = SpecWriter.new(
-        'spec/fixtures/ntp.json', @output_file, @options
-      )
+      @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
-      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
       expect(md5).to eq "d15e003e815966267de7545924dab158"
     end
 
     it 'only include File[/\/etc\/ntp\.conf/]' do
       @options[:only_include] = ['File[/\/etc\/ntp\.conf/]']
-      @spec_writer = SpecWriter.new(
-        'spec/fixtures/ntp.json', @output_file, @options
-      )
+      @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
-      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
       expect(md5).to eq "d15e003e815966267de7545924dab158"
     end
 
     it 'only include /File/' do
       @options[:only_include] = ['/File/']
-      @spec_writer = SpecWriter.new(
-        'spec/fixtures/ntp.json', @output_file, @options
-      )
+      @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
-      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
       expect(md5).to eq "d15e003e815966267de7545924dab158"
     end
 
     it 'only include File[/xyz/]' do
       @options[:only_include] = ['File[/xyz/]']
-      @spec_writer = SpecWriter.new(
-        'spec/fixtures/ntp.json', @output_file, @options
-      )
+      @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
-      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
       expect(md5).to eq "39d77ccaa27a6d31b0c2fbd301fc7e8d" # looks like a file with no resources
     end
   end
@@ -170,16 +151,14 @@ describe SpecWriter do
 
     it 'should use a user-specified class name' do
       @options[:class_name] = 'default'
-      @spec_writer = SpecWriter.new(
-        'spec/fixtures/ntp.json', @output_file, @options
-      )
+      @spec_writer = SpecWriter.new(@options)
       @spec_writer.write
-      md5 = Digest::MD5.hexdigest(File.open(@output_file).read)
+      md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
       expect(md5).to eq "0a03d975ae5b8f54e0baeda176a466d3"
     end
   end
 
   after(:all) do
-    FileUtils.rm(@output_file)
+    FileUtils.rm(@options[:output_file])
   end
 end

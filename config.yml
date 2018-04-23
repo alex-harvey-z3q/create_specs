@@ -24,5 +24,21 @@
 # Class name to declare. By default is auto-detected.
 :class_name: null
 
+# Default input file. It must be specified on the command line via -c.
+:catalog_file: null
+
+# Default output file. Can be over-ridden via -o.
+:output_file: spec/classes/init_spec.rb
+
 # Default setup.
 :setup: {}
+
+# Example:
+#
+# :setup:
+#   :pre_condition:
+#     - hiera_include('classes')
+#   :hiera_config: spec/fixtures/hiera.yaml
+#   :facts:
+#     foo: bar
+#     baz: qux
