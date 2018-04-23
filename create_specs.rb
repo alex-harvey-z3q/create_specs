@@ -14,37 +14,37 @@ def parse_arguments
 
   OptionParser.new do |opts|
     opts.banner = "Usage: #{File.basename($0)} [options]"
-    opts.on('-f', '--config_file CONFIG', 'Path to config file') do |c|
-      options = YAML.load_file(c)
+    opts.on('-f', '--config_file CONFIG', 'Path to config file') do |opt|
+      options = YAML.load_file(opt)
     end
-    opts.on('-c', '--catalog CATALOG', 'Path to the catalog JSON file') do |c|
-      options[:catalog_file] = c
+    opts.on('-c', '--catalog CATALOG', 'Path to the catalog JSON file') do |opt|
+      options[:catalog_file] = opt
     end
-    opts.on('-C', '--class CLASS', 'Class (or node) name under test') do |c|
-      options[:class_name] = c
+    opts.on('-C', '--class CLASS', 'Class (or node) name under test') do |opt|
+      options[:class_name] = opt
     end
-    opts.on('-o', '--output OUTPUTFILE', 'Path to the output Rspec file') do |o|
-      options[:output_file] = o
+    opts.on('-o', '--output OUTPUTFILE', 'Path to the output Rspec file') do |opt|
+      options[:output_file] = opt
     end
     opts.on('-x', '--exclude RESOURCE', [
       'Resources to exclude. String or Regexp. ',
-      'Repeat this option to exclude multiple resources'].join) do |r|
-      options[:excludes] << r
+      'Repeat this option to exclude multiple resources'].join) do |opt|
+      options[:excludes] << opt
     end
     opts.on('-i', '--include RESOURCE',
-      'Resources to include despite the exclude list.') do |r|
-      options[:excludes].delete_if { |x| x == r }
+      'Resources to include despite the exclude list.') do |opt|
+      options[:excludes].delete_if { |x| x == opt }
     end
     opts.on('-I', '--only-include RESOURCE',
-      'Only include these resources and exclude everything else. Regexp supported') do |r|
-      options[:only_include] << r
+      'Only include these resources and exclude everything else. Regexp supported') do |opt|
+      options[:only_include] << opt
     end
     opts.on('-m', '--md5sums',
-      'Use md5sums instead of full file content to validate file content') do |r|
-      options[:md5sums] = r
+      'Use md5sums instead of full file content to validate file content') do |opt|
+      options[:md5sums] = opt
     end
-    opts.on('-t', '--[no-]compile-test', 'Include or exclude the catalog compilation test') do |r|
-      options[:compile_test] = r
+    opts.on('-t', '--[no-]compile-test', 'Include or exclude the catalog compilation test') do |opt|
+      options[:compile_test] = opt
     end
     opts.on('-h', '--help', 'Print this help') do
       puts opts
