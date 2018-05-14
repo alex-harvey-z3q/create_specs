@@ -268,6 +268,8 @@ class SpecWriter
       title      = r['title'].gsub /'/, "\\\\'"
       parameters = r['parameters']
 
+      next if parameters.nil?
+
       @content +=
         "  it 'is expected to contain #{type.downcase} #{title}' do\n" +
         "    is_expected.to #{matcher(type)}('#{title}').with({\n"
@@ -293,8 +295,8 @@ class SpecWriter
       cont = parameters['content']
 
       if type == 'File' and
-        (ensr == 'file' or
-         ensr == 'present' or
+        not cont.nil? and
+        (ensr == 'file' or ensr == 'present' or
          ! parameters.has_key?('ensure'))
 
         mod = cont.clone
