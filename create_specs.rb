@@ -145,10 +145,10 @@ class SpecWriter
   # than what is specified there.
   #
   def clean_catalog
-    if not @options[:only_include].empty?
-      clean_by_only_includes
-    else
+    if @options[:only_include].empty?
       clean_by_includes
+    else
+      clean_by_only_includes
     end
   end
 
@@ -268,7 +268,13 @@ class SpecWriter
       title      = r['title'].gsub /'/, "\\\\'"
       parameters = r['parameters']
 
-      next if parameters.nil?
+      if parameters.nil?
+        @content +=
+          "  it 'is expected to contain #{type.downcase} #{title}' do\n" +
+          "    is_expected.to #{matcher(type)}('#{title}')\n"            +
+          "  end\n\n"
+        next
+      end
 
       @content +=
         "  it 'is expected to contain #{type.downcase} #{title}' do\n" +
@@ -297,7 +303,7 @@ class SpecWriter
       if type == 'File' and
         not cont.nil? and
         (ensr == 'file' or ensr == 'present' or
-         ! parameters.has_key?('ensure'))
+         not parameters.has_key?('ensure'))
 
         mod = cont.clone
 

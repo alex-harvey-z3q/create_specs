@@ -1,0 +1,74 @@
+{
+  "document_type": "Catalog",
+  "data": {
+    "tags": ["settings","test","class"],
+    "name": "alexs-macbook-pro-2.local",
+    "version": 1528543393,
+    "environment": "rp_env",
+    "resources": [
+      {
+        "type": "Stage",
+        "title": "main",
+        "tags": ["stage"],
+        "exported": false,
+        "parameters": {
+          "name": "main"
+        }
+      },
+      {
+        "type": "Class",
+        "title": "Settings",
+        "tags": ["class","settings"],
+        "exported": false
+      },
+      {
+        "type": "Class",
+        "title": "main",
+        "tags": ["class"],
+        "exported": false,
+        "parameters": {
+          "name": "main"
+        }
+      },
+      {
+        "type": "Class",
+        "title": "Test",
+        "tags": ["class","test"],
+        "exported": false
+      },
+      {
+        "type": "Notify",
+        "title": "IP Address fact is ",
+        "tags": ["notify","class","test"],
+        "file": "/Users/alexharvey/git/puppet-test/spec/fixtures/modules/test/manifests/init.pp",
+        "line": 2,
+        "exported": false
+      }
+    ],
+    "edges": [
+      {
+        "source": "Stage[main]",
+        "target": "Class[Settings]"
+      },
+      {
+        "source": "Stage[main]",
+        "target": "Class[main]"
+      },
+      {
+        "source": "Stage[main]",
+        "target": "Class[Test]"
+      },
+      {
+        "source": "Class[Test]",
+        "target": "Notify[IP Address fact is ]"
+      }
+    ],
+    "classes": [
+      "settings",
+      "test"
+    ]
+  },
+  "metadata": {
+    "api_version": 1
+  }
+}

@@ -10,7 +10,7 @@ describe SpecWriter do
       :md5sums => false,
       :class_name => nil,
       :setup => {},
-      :output_file => 'ntp_spec.rb',
+      :output_file => 'out_spec.rb',
       :compile_test => true,
     }
   end
@@ -35,9 +35,24 @@ describe SpecWriter do
     end
   end
 
+  context 'no notify' do
+    it 'should not raise errors' do
+      @options[:catalog_file] = 'spec/fixtures/notify.json'
+      @options[:excludes].delete('Notify')
+      @spec_writer = SpecWriter.new(@options)
+      expect { @spec_writer.write }.to_not raise_error
+    end
+
+    it 'should generate output file with expected md5sum' do
+      md5 = Digest::MD5.hexdigest(File.open(@options[:output_file]).read)
+      expect(md5).to eq "64729b78b911f838403783e98ce536df"
+    end
+  end
+
   context 'include defined types' do
     before(:all) do
-      @options[:excludes].pop
+      @options[:catalog_file] = 'spec/fixtures/ntp.json'
+      @options[:excludes] = ['Stage', 'Class', 'Anchor', 'Notify', 'Node']
     end
 
     it 'should not raise errors' do
@@ -78,7 +93,7 @@ describe SpecWriter do
   context 'md5sum option' do
     before(:all) do
       @options[:md5sums] = true
-      @options[:output_file] = 'ntp_spec.rb'
+      @options[:output_file] = 'out_spec.rb'
     end
 
     it 'should generate output file with expected md5sum' do
