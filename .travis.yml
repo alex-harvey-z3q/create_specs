@@ -1,6 +1,10 @@
 ---
 language: ruby
+rvm:
+  - 2.0.0
+  - 2.1.4
+  - 2.4.1
 before_install: rm Gemfile.lock || true
-script: "bundle exec rake SPEC_OPTS='--format documentation'"
+script: 'bundle exec rake'
 notifications:
   email: false
