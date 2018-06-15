@@ -7,6 +7,14 @@ require 'awesome_print'
 require 'optparse'
 require 'digest'
 
+# Support Ruby < 2.4.0. In Ruby 2.4.0, the Fixnum and Bignum types were unified
+# as Integer.
+#
+if not defined?(Fixnum)
+  class Fixnum < Integer
+  end
+end
+
 $default_config = [File.dirname($0), 'config.yml'].join('/')
 
 def parse_arguments
@@ -285,7 +293,7 @@ class SpecWriter
           if v.class == String
             v.gsub! /'/, "\\\\'"
             @content += "      '#{k}' => '#{v}',\n"
-          elsif [Fixnum, Integer, TrueClass, FalseClass].include?(v.class)
+          elsif [Integer, TrueClass, FalseClass].include?(v.class)
             @content += "      '#{k}' => '#{v}',\n"
           elsif [Array, Hash].include?(v.class)
             @content += "      '#{k}' => #{v},\n"
