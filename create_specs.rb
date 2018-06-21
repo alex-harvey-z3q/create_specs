@@ -77,6 +77,10 @@ end
 
 # Class for rewriting a catalog as a spec file.
 #
+# @param [Hash] options
+#
+# The options hash returned by parse_arguments above.
+#
 class SpecWriter
   def initialize(options)
     @options = options
@@ -119,6 +123,8 @@ class SpecWriter
     end
   end
 
+  # Convert foo::bar to Foo::Bar.
+  #
   def capitalize(string)
     string.split(/::/).map{|x| x.capitalize}.join('::')
   end
@@ -269,6 +275,8 @@ class SpecWriter
     "contain_#{type.downcase.gsub '::', '__'}"
   end
 
+  # FIXME. This has grown too long.
+  #
   def generate_examples_section
     @catalog['resources'].each do |r|
 
@@ -321,9 +329,6 @@ class SpecWriter
             mod.gsub! /"/, '\"'
             mod.gsub! /\@/, '\@'
             mod.gsub! /\$;/, '\\$;'
-            mod.gsub!(
-              /\$EscapeControlCharactersOnReceive/,
-              '\\$EscapeControlCharactersOnReceive') # A weird special Ruby
           rescue
           end
         end
@@ -342,11 +347,11 @@ class SpecWriter
   def generate_md5sum_check(title, content)
     md5 = Digest::MD5.hexdigest(content)
     @content +=
-      "  it 'is expected to contain expected content for file "  +
-                    "#{title}' do\n"                             +
+      "  it 'is expected to contain expected content for file "                            +
+                    "#{title}' do\n"                                                       +
       "    content = catalogue.resource('file', '#{title}').send(:parameters)[:content]\n" +
-      "    md5 = Digest::MD5.hexdigest(content)\n"               +
-      "    expect(md5).to eq '#{md5}'\n"                         +
+      "    md5 = Digest::MD5.hexdigest(content)\n"                                         +
+      "    expect(md5).to eq '#{md5}'\n"                                                   +
       "  end\n\n"
   end
 
