@@ -1,47 +1,15 @@
 ---
-# Resource types to exclude, i.e. to not write out as Rspec expectations. The
-# /::/ excludes all defined types.
-#
-:excludes:
+excludes:
   - Stage
   - Class
   - Anchor
   - Notify
   - Node
   - /::/
-
-# only_include and excludes are mutually exclusive, and only_include takes
-# precedence. A list of specific resources specified as [Type[title],...], to
-# be read as "only include [Type1[title2],Type2[title2]...].
-#
-:only_include: []
-
-# Use full file content rather than MD5 sum checks of the content in the
-# generated tests.
-#
-:md5sums: false
-
-# Class name to declare. By default is auto-detected.
-:class_name: null
-
-# Default input file. It must be specified on the command line via -c.
-:catalog_file: null
-
-# Default output file. Can be over-ridden via -o.
-:output_file: spec/classes/init_spec.rb
-
-# Compile test. Include or don't include the test for compilation.
-:compile_test: true
-
-# Default setup.
-:setup: {}
-
-# Example:
-#
-# :setup:
-#   :pre_condition:
-#     - hiera_include('classes')
-#   :hiera_config: spec/fixtures/hiera.yaml
-#   :facts:
-#     foo: bar
-#     baz: qux
+only_include: []
+md5sums: false
+class_name: null
+catalog_file: null
+output_file: spec/classes/init_spec.rb
+compile_test: true
+setup: {}

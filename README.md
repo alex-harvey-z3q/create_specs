@@ -1,8 +1,10 @@
 # create_specs.rb
 
-Release 2.5.0
+Release 3.0.0-pre
 
-[![Build Status](https://img.shields.io/travis/alexharv074/create_specs.svg)](https://travis-ci.org/alexharv074/create_specs)
+## Status
+
+This project is currently being rewritten in Crystal.
 
 ## Overview
 
@@ -12,29 +14,15 @@ It is assumed that the user already knows how to set up Rspec-puppet for a Puppe
 
 ## Dependencies
 
-This tool uses the [awesome_print](https://github.com/awesome-print/awesome_print) Gem.
+To install dependencies:
 
-Also, be aware that the generated spec depends on the `verify_contents` method that is normally found inside Puppetlabs-spec-helper.
+~~~ text
+shards install
+~~~
 
 ## Installation
 
-Install by cloning this repo:
-
-```
-$ git clone https://github.com/alexharv074/create_specs.git
-```
-
-Then add a line to your .bash_profile like:
-
-```
-export PATH=/Users/alexharvey/git/create_specs:$PATH
-```
-
-Ensure you have the dependencies:
-
-```
-$ gem install awesome_print
-```
+TODO.
 
 ## Usage
 
