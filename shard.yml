@@ -1,0 +1,6 @@
+name: create_specs
+version: 3.0.0
+
+dependencies:
+  awesome_print:
+    github: evandrojr/awesome_print.cr
