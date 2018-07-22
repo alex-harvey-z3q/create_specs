@@ -26,6 +26,18 @@ TODO.
 
 ## Usage
 
+To run via crystal run:
+
+~~~ text
+$ crystal run create_specs.rb -- [options]
+~~~
+
+e.g.
+
+~~~ text
+$ crystal run create_specs.rb -- -c spec/fixtures/ntp.json
+~~~
+
 Help message:
 
 ```
