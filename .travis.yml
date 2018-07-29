@@ -8,3 +8,6 @@ before_install: rm Gemfile.lock || true
 script: 'bundle exec rake'
 notifications:
   email: false
+branches:
+  only:
+    - master
