@@ -8,13 +8,13 @@ Release 2.5.0
 
 This script can be used to generate Rspec-puppet examples for all of the resources in a Puppet JSON catalog document. The intended use-cases include quickly generating default Rspec tests in a project that doesn't have any; and it can also be useful when refactoring Puppet modules.
 
-It is assumed that the user already knows how to set up Rspec-puppet for a Puppet module (i.e. how to create the `.fixtures.yml`, `Gemfile`, `spec/spec_helper.rb` etc).  If not, consider reading my [blog post](http://razorconsulting.com.au/setting-up-puppet-module-testing-from-scratch-part-ii-beaker-for-module-testing.html).
+It is assumed that the user already knows how to set up Rspec-puppet for a Puppet module (i.e. how to create the `.fixtures.yml`, `Gemfile`, `spec/spec_helper.rb` etc).  If not, consider reading my [blog post](https://alexharv074.github.io/2016/05/08/setting-up-puppet-module-testing-from-scratch-part-i-puppet-syntax-puppet-lint-and-rspec-puppet.html). Or better still, use [pdk](https://github.com/puppetlabs/pdk).
 
 ## Dependencies
 
 This tool uses the [awesome_print](https://github.com/awesome-print/awesome_print) Gem.
 
-Also, be aware that the generated spec depends on the `verify_contents` method that is normally found inside Puppetlabs-spec-helper.
+Also, be aware that the generated spec may depend on the `verify_contents` method that is normally found inside Puppetlabs-spec-helper.
 
 ## Installation
 
@@ -61,7 +61,7 @@ Basic usage:
 
 ```
 $ cd /path/to/puppet/module
-$ create_specs.rb -c /path/to/catalog.json
+$ create_specs.rb -c path/to/catalog.json
 ```
 
 This will cause the resources in `catalog.json` to be rewritten as Rspec-puppet examples in `spec/classes/init_spec.rb`, which is the default output file.
@@ -120,7 +120,7 @@ $ create_spec.rb -c catalog.json -I 'File[/\/etc\/ssl/]'
 To specify a different output file:
 
 ```
-$ create_specs.rb -c /path/to/catalog.json -o path/to/output_spec.rb
+$ create_specs.rb -c path/to/catalog.json -o path/to/output_spec.rb
 ```
 
 ### class name option
@@ -128,14 +128,14 @@ $ create_specs.rb -c /path/to/catalog.json -o path/to/output_spec.rb
 By default, the class name that was used to generate the catalog is guessed. In some edge-cases (e.g. if a pre-condition is used in the set up that first declares a different class) the auto-detected class is wrong. To get around this, use the -C option:
 
 ```
-$ create_specs.rb -c /path/to/catalog.json -C class
+$ create_specs.rb -c path/to/catalog.json -C class
 ```
 
 ### compile test option
 
 The default behaviour is to include a compile test as follows:
 
-``` ruby
+```ruby
   it 'should write a compiled catalog' do
     is_expected.to compile.with_all_deps
     File.write(
@@ -151,7 +151,7 @@ This can be disabled by specifying `--no-compile-test`.
 
 By using the -f option, it is possible to pass a custom config.yml file with a custom setup section in it. For example, if your config.yml contained:
 
-``` yaml
+```yaml
 :setup:
   :pre_condition:
     - hiera_include('classes')
@@ -163,7 +163,7 @@ By using the -f option, it is possible to pass a custom config.yml file with a c
 
 This would result in auto-generated Rspec code with:
 
-``` ruby
+```ruby
   let(:pre_condition) do
     """
     hiera_include('classes')
@@ -206,5 +206,5 @@ end
 
 Then run the tests and you'll have a compiled catalog.
 
-For more detail, see my [other blog post](http://razorconsulting.com.au/dumping-the-catalog-in-rspec-puppet.html).
+For more detail, see my [other blog post](https://alexharv074.github.io/2017/05/31/using-create_specs-to-refactor-puppet.html).
 
